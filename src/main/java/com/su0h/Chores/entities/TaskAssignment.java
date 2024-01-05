@@ -1,9 +1,8 @@
 package com.su0h.Chores.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "task_assignment")
@@ -23,9 +22,9 @@ public class TaskAssignment {
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     @Column(name = "last_modified")
-    private Date lastModified;
+    private LocalDate lastModified;
 
     protected TaskAssignment() { }
 
@@ -37,7 +36,7 @@ public class TaskAssignment {
         this.task = task;
         this.task.setTaskAssignment(this);
 
-        this.lastModified = new Date();
+        this.lastModified = LocalDate.now();
     }
 
     @Override
@@ -72,11 +71,11 @@ public class TaskAssignment {
         this.task = task;
     }
 
-    public Date getLastModified() {
+    public LocalDate getLastModified() {
         return lastModified;
     }
 
-    public void setLastModified(Date lastModified) {
+    public void setLastModified(LocalDate lastModified) {
         this.lastModified = lastModified;
     }
 }

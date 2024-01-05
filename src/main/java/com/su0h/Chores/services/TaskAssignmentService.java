@@ -6,7 +6,9 @@ import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -19,14 +21,17 @@ public class TaskAssignmentService {
     }
 
     public ResponseEntity<List<TaskAssignment>> fetchAllTaskAssignments() {
-        for (TaskAssignment taskAssignment : taskAssignmentRepository.findAll()) {
-            System.out.println(taskAssignment);
-        }
         return ResponseEntity.ok(taskAssignmentRepository.findAll());
     }
 
     public ResponseEntity<String> shiftTaskAssignments() {
-        Date dateToday = new Date();
+        LocalDate dateToday = LocalDate.now();
+        LocalDate lastUpdated = taskAssignmentRepository.getLastModifiedDate();
+
+        // Checking if shifting needs to be done
+        if (dateToday.isEqual(lastUpdated)) {
+            return ResponseEntity.ok("The tasks have been shifted for today already.");
+        }
 
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
