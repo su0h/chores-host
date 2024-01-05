@@ -13,11 +13,13 @@ public class TaskAssignment {
     @Column(name = "id")
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    //    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne()
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person person;
 
-    @OneToOne(cascade = CascadeType.ALL)
+//    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne()
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
@@ -41,7 +43,7 @@ public class TaskAssignment {
     @Override
     public String toString() {
         return String.format(
-                "Task[id=%d, lastModified='%s', p_id=%d, t_id=%d]",
+                "TaskAssignment[id=%d, lastModified='%s', p_id=%d, t_id=%d]",
                 this.id, this.lastModified, this.person.getId(), this.task.getId()
         );
     }
@@ -70,11 +72,11 @@ public class TaskAssignment {
         this.task = task;
     }
 
-    public Date getModifiedDate() {
+    public Date getLastModified() {
         return lastModified;
     }
 
-    public void setModifiedDate(Date lastModified) {
+    public void setLastModified(Date lastModified) {
         this.lastModified = lastModified;
     }
 }
