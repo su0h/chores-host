@@ -30,7 +30,7 @@ public class TaskAssignmentService {
     }
 
     // https://www.baeldung.com/spring-scheduled-tasks
-    @Scheduled(cron = "* 13 19 * * *")
+    @Scheduled(cron = "* 0 0 * * *") // Runs every 12:00 AM
     private void shiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
         LocalDate lastUpdated = taskAssignmentRepository.getLastModifiedDate();
