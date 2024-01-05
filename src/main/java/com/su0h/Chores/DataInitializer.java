@@ -1,8 +1,10 @@
 package com.su0h.Chores;
 
+import com.su0h.Chores.entities.Holiday;
 import com.su0h.Chores.entities.Person;
 import com.su0h.Chores.entities.Task;
 import com.su0h.Chores.entities.TaskAssignment;
+import com.su0h.Chores.repositories.HolidayRepository;
 import com.su0h.Chores.repositories.PersonRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import com.su0h.Chores.repositories.TaskRepository;
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -25,28 +29,51 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private TaskAssignmentRepository taskAssignmentRepository;
 
+    @Autowired
+    private HolidayRepository holidayRepository;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Create sample data
-        Person person1 = new Person("Alice");
-        Person person2 = new Person("Bob");
-        Person person3 = new Person("Jorhe");
+        // Create Persons
+        List<Person> personList = new ArrayList<>();
 
-        Task task1 = new Task("Prepare Table");
-        Task task2 = new Task("Clean Table");
-        Task task3 = new Task("Wash Dishes");
+        personList.add(new Person("Alice"));
+        personList.add(new Person("Bob"));
+        personList.add(new Person("Jorhe"));
+        personList.add(new Person("Charlie"));
+        personList.add(new Person("Mae"));
+
+        // Create Tasks
+        List<Task> taskList = new ArrayList<>();
+
+        taskList.add(new Task("Prepare Table"));
+        taskList.add(new Task("Clean Table"));
+        taskList.add(new Task("Wash Dishes"));
+        taskList.add(new Task("Feed Dog"));
+        taskList.add(new Task("Clean Bathroom"));
 
         // Save entities to the database
-        personRepository.saveAll(List.of(person1, person2, person3));
-        taskRepository.saveAll(List.of(task1, task2, task3));
+        personRepository.saveAll(personList);
+        taskRepository.saveAll(taskList);
 
-        // Create TaskAssignments
-        TaskAssignment assignment1 = new TaskAssignment(person1, task1);
-        TaskAssignment assignment2 = new TaskAssignment(person2, task2);
-        TaskAssignment assignment3 = new TaskAssignment(person3, task3);
+        // Create and save Task Assignments
+        for (int i = 0; i < personList.size(); i++) {
+            TaskAssignment taskAssignment = new TaskAssignment(personList.get(i), taskList.get(i));
+            taskAssignment.setLastModified(LocalDate.now().minusDays(1L));
+            taskAssignmentRepository.save(taskAssignment);
+        }
 
-        // Save TaskAssignments to the database
-        taskAssignmentRepository.saveAll(List.of(assignment1, assignment2, assignment3));
+        this.initializeHolidays();
+    }
+
+    private void initializeHolidays() {
+        holidayRepository.save(new Holiday("New Year's Day", LocalDate.of(2024, 1, 1)));
+        holidayRepository.save(new Holiday("Chinese New Year", LocalDate.of(2024, 2, 10)));
+        holidayRepository.save(new Holiday("Maundy Thursday", LocalDate.of(2024, 3, 28)));
+        holidayRepository.save(new Holiday("Good Friday", LocalDate.of(2024, 3, 29)));
+        holidayRepository.save(new Holiday("New Year's Day", LocalDate.of(2024, 1, 1)));
+
+        holidayRepository.save(new Holiday("Test Holiday", LocalDate.of(2024, 1, 5)));
     }
 }

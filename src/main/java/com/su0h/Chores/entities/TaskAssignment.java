@@ -1,9 +1,8 @@
 package com.su0h.Chores.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "task_assignment")
@@ -13,17 +12,19 @@ public class TaskAssignment {
     @Column(name = "id")
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    //    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne()
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person person;
 
-    @OneToOne(cascade = CascadeType.ALL)
+//    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne()
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     @Column(name = "last_modified")
-    private Date lastModified;
+    private LocalDate lastModified;
 
     protected TaskAssignment() { }
 
@@ -35,13 +36,13 @@ public class TaskAssignment {
         this.task = task;
         this.task.setTaskAssignment(this);
 
-        this.lastModified = new Date();
+        this.lastModified = LocalDate.now();
     }
 
     @Override
     public String toString() {
         return String.format(
-                "Task[id=%d, lastModified='%s', p_id=%d, t_id=%d]",
+                "TaskAssignment[id=%d, lastModified='%s', p_id=%d, t_id=%d]",
                 this.id, this.lastModified, this.person.getId(), this.task.getId()
         );
     }
@@ -70,11 +71,11 @@ public class TaskAssignment {
         this.task = task;
     }
 
-    public Date getModifiedDate() {
+    public LocalDate getLastModified() {
         return lastModified;
     }
 
-    public void setModifiedDate(Date lastModified) {
+    public void setLastModified(LocalDate lastModified) {
         this.lastModified = lastModified;
     }
 }
