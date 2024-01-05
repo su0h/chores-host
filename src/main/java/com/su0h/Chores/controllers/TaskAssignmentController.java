@@ -23,8 +23,4 @@ public class TaskAssignmentController {
         return taskAssignmentService.fetchAllTaskAssignments().getBody();
     }
 
-    @GetMapping("/shift_tasks")
-    public String shiftTasks() {
-        return taskAssignmentService.shiftTaskAssignments().getBody();
-    }
 }
