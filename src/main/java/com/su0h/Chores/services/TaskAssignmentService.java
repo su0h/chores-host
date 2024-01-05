@@ -16,8 +16,11 @@ import java.util.List;
 public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
 
-    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository) {
+    private final DateService dateService;
+
+    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository, DateService dateService) {
         this.taskAssignmentRepository = taskAssignmentRepository;
+        this.dateService = dateService;
     }
 
     public ResponseEntity<List<TaskAssignment>> fetchAllTaskAssignments() {
@@ -48,6 +51,11 @@ public class TaskAssignmentService {
 
         // Shift list of tasks
         tasks.add(0, tasks.remove(tasks.size() - 1));
+
+        // Double shift if today is a weekend or a holiday
+        if (dateService.isDoubleTaskDay(dateToday)) {
+            tasks.add(0, tasks.remove(tasks.size() - 1));
+        }
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
