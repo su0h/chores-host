@@ -44,47 +44,47 @@ public class TaskAssignmentService {
 
     // https://www.baeldung.com/spring-scheduled-tasks
     @Scheduled(cron = "* 0 0 * * *") // Runs every 12:00 AM
-    private void performScheduledShifting() {
+    private void performWeekdayScheduledShifting() {
         this.shiftTaskAssignments();
     }
 
-    public void shiftTaskAssignments() {
+    @Scheduled(cron = "* 0 17 * * *") // Runs every 5:00 PM
+    private void performDoubleTaskScheduledShifting() {
+        // Run only if today is a double task day (i.e., holiday, weekend)
+        if (dateService.isDoubleTaskDay(LocalDate.now()))
+            this.shiftTaskAssignments();
+    }
+
+    public ResponseEntity<String> shiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
         LocalDate lastUpdated = taskAssignmentRepository.getLastModifiedDate();
 
-        // Checking if shifting needs to be done
-        if (!dateToday.isEqual(lastUpdated)) {
+        // Save all task assignments
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
-            // Save all task assignments
-            List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        // Empty table of task assignments
+        // Note: ensure that cascade is not set to ALL
+        taskAssignmentRepository.deleteAll();
 
-            // Empty table of task assignments
-            // Note: ensure that cascade is not set to ALL
-            taskAssignmentRepository.deleteAll();
-
-            // Retrieve tasks stored in task assignments
-            ArrayList<Task> tasks = new ArrayList<>();
-            for (TaskAssignment taskAssignment : taskAssignments) {
-                tasks.add(taskAssignment.getTask());
-            }
-
-            // Shift list of tasks
-            // (Double shift if today is a weekend or a holiday)
-            if (dateService.isDoubleTaskDay(dateToday)) {
-                this.shiftTasks(tasks, 2, true);
-            } else {
-                this.shiftTasks(tasks, 1, true);
-            }
-
-            // Update task assignments
-            for (int i = 0; i < taskAssignments.size(); i++) {
-                taskAssignments.get(i).setTask(tasks.get(i));
-                taskAssignments.get(i).setLastModified(dateToday);
-            }
-
-            // Save updated task assignments
-            taskAssignmentRepository.saveAll(taskAssignments);
+        // Retrieve tasks stored in task assignments
+        ArrayList<Task> tasks = new ArrayList<>();
+        for (TaskAssignment taskAssignment : taskAssignments) {
+            tasks.add(taskAssignment.getTask());
         }
+
+        // Shift list of tasks
+        this.shiftTasks(tasks, 1, true);
+
+        // Update task assignments
+        for (int i = 0; i < taskAssignments.size(); i++) {
+            taskAssignments.get(i).setTask(tasks.get(i));
+            taskAssignments.get(i).setLastModified(dateToday);
+        }
+
+        // Save updated task assignments
+        taskAssignmentRepository.saveAll(taskAssignments);
+
+        return ResponseEntity.ok("Shifted successfully!");
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)

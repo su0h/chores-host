@@ -33,8 +33,7 @@ public class TaskAssignmentController {
     // TODO: Remove this; this is used for testing purposes only;
     //       no API endpoints doing this will be exposed in final version
     @PostMapping("/shift_task_assignments")
-    public String shiftTaskAssignments() {
-        taskAssignmentService.shiftTaskAssignments();
-        return "Successfully shifted!";
+    public ResponseEntity<String> shiftTaskAssignments() {
+        return taskAssignmentService.shiftTaskAssignments();
     }
 }
