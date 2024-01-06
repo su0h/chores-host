@@ -1,13 +1,7 @@
 package com.su0h.Chores;
 
-import com.su0h.Chores.entities.Holiday;
-import com.su0h.Chores.entities.Person;
-import com.su0h.Chores.entities.Task;
-import com.su0h.Chores.entities.TaskAssignment;
-import com.su0h.Chores.repositories.HolidayRepository;
-import com.su0h.Chores.repositories.PersonRepository;
-import com.su0h.Chores.repositories.TaskAssignmentRepository;
-import com.su0h.Chores.repositories.TaskRepository;
+import com.su0h.Chores.entities.*;
+import com.su0h.Chores.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -32,6 +26,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private HolidayRepository holidayRepository;
 
+    @Autowired
+    private MetadataRepository metadataRepository;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -41,17 +38,17 @@ public class DataInitializer implements CommandLineRunner {
         personList.add(new Person("Alice"));
         personList.add(new Person("Bob"));
         personList.add(new Person("Jorhe"));
-        personList.add(new Person("Charlie"));
-        personList.add(new Person("Mae"));
+//        personList.add(new Person("Charlie"));
+//        personList.add(new Person("Mae"));
 
         // Create Tasks
         List<Task> taskList = new ArrayList<>();
 
-        taskList.add(new Task("Prepare Table"));
-        taskList.add(new Task("Clean Table"));
-        taskList.add(new Task("Wash Dishes"));
-        taskList.add(new Task("Feed Dog"));
-        taskList.add(new Task("Clean Bathroom"));
+        taskList.add(new Task("Hain"));
+        taskList.add(new Task("Ligpit"));
+        taskList.add(new Task("Hugas"));
+//        taskList.add(new Task("Feed Dog"));
+//        taskList.add(new Task("Clean Bathroom"));
 
         // Save entities to the database
         personRepository.saveAll(personList);
@@ -60,9 +57,11 @@ public class DataInitializer implements CommandLineRunner {
         // Create and save Task Assignments
         for (int i = 0; i < personList.size(); i++) {
             TaskAssignment taskAssignment = new TaskAssignment(personList.get(i), taskList.get(i));
-            taskAssignment.setLastModified(LocalDate.now().minusDays(1L));
+//            taskAssignment.setLastModified(LocalDate.now().minusDays(1L));
             taskAssignmentRepository.save(taskAssignment);
         }
+
+        metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
 
         this.initializeHolidays();
     }
@@ -74,6 +73,14 @@ public class DataInitializer implements CommandLineRunner {
         holidayRepository.save(new Holiday("Good Friday", LocalDate.of(2024, 3, 29)));
         holidayRepository.save(new Holiday("New Year's Day", LocalDate.of(2024, 1, 1)));
 
-        holidayRepository.save(new Holiday("Test Holiday", LocalDate.of(2024, 1, 5)));
+//        holidayRepository.save(new Holiday("Test Holiday", LocalDate.of(2024, 1, 5)));
+
+
+        /*
+         * TODO: Array of Task Assignments (only one for weekdays, then two elements for holidays/weekends)
+         */
+
+
+
     }
 }

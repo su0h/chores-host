@@ -1,8 +1,10 @@
 package com.su0h.Chores.services;
 
+import com.su0h.Chores.entities.Metadata;
 import com.su0h.Chores.entities.Task;
 import com.su0h.Chores.entities.TaskAssignment;
 import com.su0h.Chores.entities.TaskAssignmentResponse;
+import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -10,18 +12,22 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @EnableScheduling
 public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
+    private final MetadataRepository metadataRepository;
 
     private final DateService dateService;
 
-    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository, DateService dateService) {
+    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository, MetadataRepository metadataRepository, DateService dateService) {
         this.taskAssignmentRepository = taskAssignmentRepository;
+        this.metadataRepository = metadataRepository;
         this.dateService = dateService;
     }
 
@@ -36,8 +42,10 @@ public class TaskAssignmentService {
             ));
         }
 
+        LocalDate lastModified = metadataRepository.getLastModifiedDate();
+
         return ResponseEntity.ok(new TaskAssignmentResponse(
-                taskAssignments.get(0).getLastModified(),
+                lastModified,
                 simplifiedTaskAssignments
         ));
     }
@@ -57,7 +65,7 @@ public class TaskAssignmentService {
 
     public ResponseEntity<String> shiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
-        LocalDate lastUpdated = taskAssignmentRepository.getLastModifiedDate();
+        LocalDate lastUpdated = metadataRepository.getLastModifiedDate();
 
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
@@ -78,8 +86,10 @@ public class TaskAssignmentService {
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
             taskAssignments.get(i).setTask(tasks.get(i));
-            taskAssignments.get(i).setLastModified(dateToday);
         }
+
+        // Update Last Modified date
+        metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
 
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
@@ -90,7 +100,7 @@ public class TaskAssignmentService {
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
     public ResponseEntity<String> unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
-        LocalDate lastUpdated = taskAssignmentRepository.getLastModifiedDate();
+        LocalDate lastUpdated = metadataRepository.getLastModifiedDate();
 
         // Unshift only if (1) db has been shifted already AND (2) today is a double task day
         if (dateToday.isEqual(lastUpdated) && dateService.isDoubleTaskDay(LocalDate.now())) {
@@ -113,8 +123,10 @@ public class TaskAssignmentService {
             // Update task assignments
             for (int i = 0; i < taskAssignments.size(); i++) {
                 taskAssignments.get(i).setTask(tasks.get(i));
-                taskAssignments.get(i).setLastModified(dateToday);
             }
+
+            // Update Last Modified date
+            metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
 
             // Save updated task assignments
             taskAssignmentRepository.saveAll(taskAssignments);
