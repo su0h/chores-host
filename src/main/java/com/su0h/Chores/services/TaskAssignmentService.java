@@ -2,6 +2,7 @@ package com.su0h.Chores.services;
 
 import com.su0h.Chores.entities.Task;
 import com.su0h.Chores.entities.TaskAssignment;
+import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -24,8 +25,21 @@ public class TaskAssignmentService {
         this.dateService = dateService;
     }
 
-    public ResponseEntity<List<TaskAssignment>> fetchAllTaskAssignments() {
-        return ResponseEntity.ok(taskAssignmentRepository.findAll());
+    public ResponseEntity<TaskAssignmentResponse> fetchAllTaskAssignments() {
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
+
+        for (TaskAssignment taskAssignment : taskAssignments) {
+            simplifiedTaskAssignments.add(new TaskAssignmentResponse.SimplifiedTaskAssignment(
+                taskAssignment.getPerson().getName(),
+                taskAssignment.getTask().getName()
+            ));
+        }
+
+        return ResponseEntity.ok(new TaskAssignmentResponse(
+                taskAssignments.get(0).getLastModified(),
+                simplifiedTaskAssignments
+        ));
     }
 
     // https://www.baeldung.com/spring-scheduled-tasks

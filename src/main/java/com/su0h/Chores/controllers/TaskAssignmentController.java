@@ -1,7 +1,8 @@
 package com.su0h.Chores.controllers;
 
-import com.su0h.Chores.entities.TaskAssignment;
+import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.services.TaskAssignmentService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,8 +21,8 @@ public class TaskAssignmentController {
     }
 
     @GetMapping("/task_assignments")
-    public List<TaskAssignment> getAllTaskAssignments() {
-        return taskAssignmentService.fetchAllTaskAssignments().getBody();
+    public ResponseEntity<TaskAssignmentResponse> getAllTaskAssignments() {
+        return taskAssignmentService.fetchAllTaskAssignments();
     }
 
     @PostMapping("/unshift_task_assignments")
