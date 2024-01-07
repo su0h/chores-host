@@ -57,7 +57,6 @@ public class DataInitializer implements CommandLineRunner {
         // Create and save Task Assignments
         for (int i = 0; i < personList.size(); i++) {
             TaskAssignment taskAssignment = new TaskAssignment(personList.get(i), taskList.get(i));
-//            taskAssignment.setLastModified(LocalDate.now().minusDays(1L));
             taskAssignmentRepository.save(taskAssignment);
         }
 
@@ -74,13 +73,5 @@ public class DataInitializer implements CommandLineRunner {
         holidayRepository.save(new Holiday("New Year's Day", LocalDate.of(2024, 1, 1)));
 
 //        holidayRepository.save(new Holiday("Test Holiday", LocalDate.of(2024, 1, 5)));
-
-
-        /*
-         * TODO: Array of Task Assignments (only one for weekdays, then two elements for holidays/weekends)
-         */
-
-
-
     }
 }
