@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,10 +104,19 @@ public class TaskAssignmentService {
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
     public ResponseEntity<String> unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
+        LocalTime timeNow = LocalTime.now();
         LocalDate lastUnshifted = metadataService.getLastUnshifted();
 
-        // Unshift only if (1) db has not been shifted yet AND (2) today is a double task day
-        if (dateToday.isAfter(lastUnshifted) && dateService.isDoubleTaskDay(LocalDate.now())) {
+        /*
+            Unshift only if:
+            (1) Today is a double task day
+            (2) DB has not been unshifted today yet
+            (3) It is after 5:00 PM already
+         */
+        if (dateService.isDoubleTaskDay(LocalDate.now()) &&
+                !dateToday.isEqual(lastUnshifted) &&
+                timeNow.isAfter(LocalTime.of(17, 0))
+        ) {
             // Save all task assignments
             List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -140,6 +150,8 @@ public class TaskAssignmentService {
 
         if (dateToday.isEqual(lastUnshifted))
             return ResponseEntity.ok("Unable to un-shift. Tasks for today have been shifted already!");
+        else if (!timeNow.isAfter(LocalTime.of(17, 0)))
+            return ResponseEntity.ok("Unable to un-shift. It is not 5:00 PM yet.");
         else
             return ResponseEntity.ok("Unable to un-shift. Today's not a double task day!");
     }
