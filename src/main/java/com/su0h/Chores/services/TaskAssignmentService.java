@@ -22,12 +22,19 @@ import java.util.Optional;
 public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final MetadataRepository metadataRepository;
+    private final MetadataService metadataService;
 
     private final DateService dateService;
 
-    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository, MetadataRepository metadataRepository, DateService dateService) {
+    public TaskAssignmentService(
+            TaskAssignmentRepository taskAssignmentRepository,
+            MetadataRepository metadataRepository,
+            MetadataService metadataService,
+            DateService dateService
+    ) {
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.metadataRepository = metadataRepository;
+        this.metadataService = metadataService;
         this.dateService = dateService;
     }
 
@@ -42,7 +49,7 @@ public class TaskAssignmentService {
             ));
         }
 
-        LocalDate lastModified = metadataRepository.getLastModifiedDate();
+        LocalDate lastModified = metadataService.getLastModifiedDate();
 
         return ResponseEntity.ok(new TaskAssignmentResponse(
                 lastModified,
@@ -64,9 +71,6 @@ public class TaskAssignmentService {
     }
 
     public ResponseEntity<String> shiftTaskAssignments() {
-        LocalDate dateToday = LocalDate.now();
-        LocalDate lastUpdated = metadataRepository.getLastModifiedDate();
-
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -89,7 +93,7 @@ public class TaskAssignmentService {
         }
 
         // Update Last Modified date
-        metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
 
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
@@ -100,10 +104,10 @@ public class TaskAssignmentService {
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
     public ResponseEntity<String> unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
-        LocalDate lastUpdated = metadataRepository.getLastModifiedDate();
+        LocalDate lastUnshifted = metadataService.getLastUnshifted();
 
-        // Unshift only if (1) db has been shifted already AND (2) today is a double task day
-        if (dateToday.isEqual(lastUpdated) && dateService.isDoubleTaskDay(LocalDate.now())) {
+        // Unshift only if (1) db has not been shifted yet AND (2) today is a double task day
+        if (dateToday.isAfter(lastUnshifted) && dateService.isDoubleTaskDay(LocalDate.now())) {
             // Save all task assignments
             List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -126,7 +130,8 @@ public class TaskAssignmentService {
             }
 
             // Update Last Modified date
-            metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
+            metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
+            metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
 
             // Save updated task assignments
             taskAssignmentRepository.saveAll(taskAssignments);
@@ -134,8 +139,8 @@ public class TaskAssignmentService {
             return ResponseEntity.ok("Unshifted successfully!");
         }
 
-        if (!dateToday.isEqual(lastUpdated))
-            return ResponseEntity.ok("Unable to un-shift. Tasks for today are not shifted yet!");
+        if (dateToday.isEqual(lastUnshifted))
+            return ResponseEntity.ok("Unable to un-shift. Tasks for today have been shifted already!");
         else
             return ResponseEntity.ok("Unable to un-shift. Today's not a double task day!");
     }

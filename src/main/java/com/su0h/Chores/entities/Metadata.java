@@ -13,10 +13,15 @@ public class Metadata {
     private String key;
     private String value;
 
+    public static enum Key {
+        LAST_MODIFIED,
+        LAST_UNSHIFTED
+    }
+
     protected Metadata () { }
 
-    public Metadata(String key, String value) {
-        this.key = key;
+    public Metadata(Key key, String value) {
+        this.key = key.name();
         this.value = value;
     }
 
