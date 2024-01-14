@@ -60,7 +60,8 @@ public class DataInitializer implements CommandLineRunner {
             taskAssignmentRepository.save(taskAssignment);
         }
 
-        metadataRepository.save(new Metadata("lastModified", LocalDate.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.of(2024, 1, 1).toString()));
 
         this.initializeHolidays();
     }
