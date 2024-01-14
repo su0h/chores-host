@@ -59,7 +59,7 @@ public class TaskAssignmentService {
 
     // https://www.baeldung.com/spring-scheduled-tasks
     @Scheduled(cron = "* 0 0 * * *") // Runs every 12:00 AM
-    private void performWeekdayScheduledShifting() {
+    private void performDailyScheduledShifting() {
         this.shiftTaskAssignments();
     }
 
