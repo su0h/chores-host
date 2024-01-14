@@ -12,10 +12,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @EnableScheduling
@@ -49,7 +48,7 @@ public class TaskAssignmentService {
             ));
         }
 
-        LocalDate lastModified = metadataService.getLastModifiedDate();
+        LocalDateTime lastModified = metadataService.getLastModifiedDate();
 
         return ResponseEntity.ok(new TaskAssignmentResponse(
                 lastModified,
@@ -93,7 +92,7 @@ public class TaskAssignmentService {
         }
 
         // Update Last Modified date
-        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
 
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
@@ -130,7 +129,7 @@ public class TaskAssignmentService {
             }
 
             // Update Last Modified date
-            metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
+            metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
             metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
 
             // Save updated task assignments

@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class DataInitializer implements CommandLineRunner {
             taskAssignmentRepository.save(taskAssignment);
         }
 
-        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDate.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
         metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.of(2024, 1, 1).toString()));
 
         this.initializeHolidays();

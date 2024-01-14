@@ -1,13 +1,14 @@
 package com.su0h.Chores.entities;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class TaskAssignmentResponse {
-    private LocalDate lastModified;
+    private LocalDateTime lastModified;
     private List<SimplifiedTaskAssignment> taskAssignments;
 
-    public TaskAssignmentResponse (LocalDate lastModified, List<SimplifiedTaskAssignment> taskAssignments) {
+    public TaskAssignmentResponse (LocalDateTime lastModified, List<SimplifiedTaskAssignment> taskAssignments) {
         this.lastModified = lastModified;
         this.taskAssignments = taskAssignments;
     }
@@ -38,11 +39,11 @@ public class TaskAssignmentResponse {
         }
     }
 
-    public LocalDate getLastModified() {
+    public LocalDateTime getLastModified() {
         return lastModified;
     }
 
-    public void setLastModified(LocalDate lastModified) {
+    public void setLastModified(LocalDateTime lastModified) {
         this.lastModified = lastModified;
     }
 
