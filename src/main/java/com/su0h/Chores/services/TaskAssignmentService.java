@@ -6,7 +6,6 @@ import com.su0h.Chores.entities.TaskAssignment;
 import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class TaskAssignmentService {
         this.dateService = dateService;
     }
 
-    public ResponseEntity<TaskAssignmentResponse> fetchAllTaskAssignments() {
+    public TaskAssignmentResponse fetchAllTaskAssignments() {
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
         List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
 
@@ -51,10 +50,10 @@ public class TaskAssignmentService {
 
         LocalDateTime lastModified = metadataService.getLastModifiedDate();
 
-        return ResponseEntity.ok(new TaskAssignmentResponse(
+        return new TaskAssignmentResponse(
                 lastModified,
                 simplifiedTaskAssignments
-        ));
+        );
     }
 
     // https://www.baeldung.com/spring-scheduled-tasks
@@ -70,7 +69,7 @@ public class TaskAssignmentService {
             this.shiftTaskAssignments();
     }
 
-    public ResponseEntity<String> shiftTaskAssignments() {
+    public String shiftTaskAssignments() {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -98,11 +97,11 @@ public class TaskAssignmentService {
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
 
-        return ResponseEntity.ok("Shifted successfully!");
+        return "Shifted successfully!";
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
-    public ResponseEntity<String> unshiftTaskAssignments() {
+    public String unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
         LocalTime timeNow = LocalTime.now();
         LocalDate lastUnshifted = metadataService.getLastUnshifted();
@@ -145,15 +144,15 @@ public class TaskAssignmentService {
             // Save updated task assignments
             taskAssignmentRepository.saveAll(taskAssignments);
 
-            return ResponseEntity.ok("Unshifted successfully!");
+            return "Unshifted successfully!";
         }
 
         if (dateToday.isEqual(lastUnshifted))
-            return ResponseEntity.ok("Unable to un-shift. Tasks for today have been shifted already!");
+            return "Unable to un-shift. Tasks for today have been shifted already!";
         else if (!timeNow.isAfter(LocalTime.of(17, 0)))
-            return ResponseEntity.ok("Unable to un-shift. It is not 5:00 PM yet.");
+            return "Unable to un-shift. It is not 5:00 PM yet.";
         else
-            return ResponseEntity.ok("Unable to un-shift. Today's not a double task day!");
+            return "Unable to un-shift. Today's not a double task day!";
     }
 
     private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {

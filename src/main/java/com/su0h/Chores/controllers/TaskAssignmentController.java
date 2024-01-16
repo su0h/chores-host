@@ -22,18 +22,20 @@ public class TaskAssignmentController {
 
     @GetMapping("/task_assignments")
     public ResponseEntity<TaskAssignmentResponse> getAllTaskAssignments() {
-        return taskAssignmentService.fetchAllTaskAssignments();
+        return ResponseEntity.ok(taskAssignmentService.fetchAllTaskAssignments());
     }
 
+    // Note: What if return the updated list?
     @PostMapping("/unshift_task_assignments")
-    public String unshiftTaskAssignments() {
-        return taskAssignmentService.unshiftTaskAssignments().getBody();
+    public ResponseEntity<String> unshiftTaskAssignments() {
+        return ResponseEntity.ok(taskAssignmentService.unshiftTaskAssignments());
     }
 
     // TODO: Remove this; this is used for testing purposes only;
     //       no API endpoints doing this will be exposed in final version
     @PostMapping("/shift_task_assignments")
     public ResponseEntity<String> shiftTaskAssignments() {
-        return taskAssignmentService.shiftTaskAssignments();
+//        return ResponseEntity.badRequest().body("No permission");
+        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
     }
 }
