@@ -1,11 +1,14 @@
 package com.su0h.Chores.services;
 
+import com.su0h.Chores.controllers.TaskAssignmentController;
 import com.su0h.Chores.entities.Metadata;
 import com.su0h.Chores.entities.Task;
 import com.su0h.Chores.entities.TaskAssignment;
 import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,8 +26,8 @@ public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
-
     private final DateService dateService;
+    private final Logger logger = LoggerFactory.getLogger(TaskAssignmentController.class);
 
     public TaskAssignmentService(
             TaskAssignmentRepository taskAssignmentRepository,
@@ -51,6 +54,8 @@ public class TaskAssignmentService {
 
         LocalDateTime lastModified = metadataService.getLastModifiedDate();
 
+        this.logger.info("Returning latest task assignments");
+
         return ResponseEntity.ok(new TaskAssignmentResponse(
                 lastModified,
                 simplifiedTaskAssignments
@@ -60,14 +65,20 @@ public class TaskAssignmentService {
     // https://www.baeldung.com/spring-scheduled-tasks
     @Scheduled(cron = "* 0 0 * * *") // Runs every 12:00 AM
     private void performDailyScheduledShifting() {
+        this.logger.info("12:00 AM scheduled shifting triggered");
         this.shiftTaskAssignments();
     }
 
     @Scheduled(cron = "* 0 17 * * *") // Runs every 5:00 PM
     private void performDoubleTaskScheduledShifting() {
+        this.logger.info("5:00 PM scheduled shifting triggered");
         // Run only if today is a double task day (i.e., holiday, weekend)
-        if (dateService.isDoubleTaskDay(LocalDate.now()))
+        if (dateService.isDoubleTaskDay(LocalDate.now())) {
+            this.logger.info("Performing 5:00 PM shifting");
             this.shiftTaskAssignments();
+        } else {
+            this.logger.info("Task assignments not shifted (today is not a double task day)");
+        }
     }
 
     public ResponseEntity<String> shiftTaskAssignments() {
@@ -97,6 +108,8 @@ public class TaskAssignmentService {
 
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
+
+        this.logger.info("Task assignments shifted successfully");
 
         return ResponseEntity.ok("Shifted successfully!");
     }
@@ -145,15 +158,23 @@ public class TaskAssignmentService {
             // Save updated task assignments
             taskAssignmentRepository.saveAll(taskAssignments);
 
+            this.logger.info("Task assignments unshifted successfully");
+
             return ResponseEntity.ok("Unshifted successfully!");
         }
 
-        if (dateToday.isEqual(lastUnshifted))
-            return ResponseEntity.ok("Unable to un-shift. Tasks for today have been shifted already!");
-        else if (!timeNow.isAfter(LocalTime.of(17, 0)))
-            return ResponseEntity.ok("Unable to un-shift. It is not 5:00 PM yet.");
-        else
-            return ResponseEntity.ok("Unable to un-shift. Today's not a double task day!");
+        String message = "Unable to unshift. Condition not met: ";
+
+        if (dateToday.isEqual(lastUnshifted)) {
+            message += "Tasks for today msut have not been shifted yet";
+        } else if (!timeNow.isAfter(LocalTime.of(17, 0))) {
+            message += "Unshift requests should be made past 5:00 PM";
+        } else {
+            message += "Today is not a double task day";
+        }
+
+        this.logger.info(message);
+        return ResponseEntity.ok(message);
     }
 
     private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {

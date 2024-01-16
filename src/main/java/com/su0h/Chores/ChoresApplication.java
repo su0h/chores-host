@@ -1,14 +1,17 @@
 package com.su0h.Chores;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class ChoresApplication {
 
-//	private static final Logger log = LoggerFactory.getLogger(SpringApplication.class);
+	private static final Logger logger = LoggerFactory.getLogger(SpringApplication.class);
 
 	public static void main(String[] args) {
+		logger.info("Starting application...");
 		SpringApplication.run(ChoresApplication.class, args);
 	}
 
