@@ -37,9 +37,7 @@ public class TaskAssignmentController {
         return ResponseEntity.ok(taskAssignmentService.unshiftTaskAssignments());
     }
 
-    // TODO: Remove this; this is used for testing purposes only;
-    //       no API endpoints doing this will be exposed in final version
-    @PostMapping("/shift_task_assignments")
+    @PostMapping("/task-assignments/shift")
     public ResponseEntity<String> shiftTaskAssignments() {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 //        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
