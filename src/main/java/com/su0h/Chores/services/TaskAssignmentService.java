@@ -6,9 +6,11 @@ import com.su0h.Chores.entities.TaskAssignment;
 import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,21 +40,9 @@ public class TaskAssignmentService {
     }
 
     public TaskAssignmentResponse fetchAllTaskAssignments() {
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-        List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
-
-        for (TaskAssignment taskAssignment : taskAssignments) {
-            simplifiedTaskAssignments.add(new TaskAssignmentResponse.SimplifiedTaskAssignment(
-                taskAssignment.getPerson().getName(),
-                taskAssignment.getTask().getName()
-            ));
-        }
-
-        LocalDateTime lastModified = metadataService.getLastModifiedDate();
-
         return new TaskAssignmentResponse(
-                lastModified,
-                simplifiedTaskAssignments
+                metadataService.getLastModifiedDate(),
+                this.fetchSimplifiedTaskAssignments()
         );
     }
 
@@ -69,7 +59,7 @@ public class TaskAssignmentService {
             this.shiftTaskAssignments();
     }
 
-    public String shiftTaskAssignments() {
+    public TaskAssignmentResponse shiftTaskAssignments() {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -97,11 +87,14 @@ public class TaskAssignmentService {
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
 
-        return "Shifted successfully!";
+        return new TaskAssignmentResponse(
+                metadataService.getLastModifiedDate(),
+                this.fetchSimplifiedTaskAssignments()
+        );
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
-    public String unshiftTaskAssignments() {
+    public TaskAssignmentResponse unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
         LocalTime timeNow = LocalTime.now();
         LocalDate lastUnshifted = metadataService.getLastUnshifted();
@@ -144,15 +137,21 @@ public class TaskAssignmentService {
             // Save updated task assignments
             taskAssignmentRepository.saveAll(taskAssignments);
 
-            return "Unshifted successfully!";
+            return new TaskAssignmentResponse(
+                    metadataService.getLastModifiedDate(),
+                    this.fetchSimplifiedTaskAssignments()
+            );
         }
 
         if (dateToday.isEqual(lastUnshifted))
-            return "Unable to un-shift. Tasks for today have been shifted already!";
+//            message = "Unable to un-shift. Tasks for today have been shifted already!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Condition not met: Tasks for today must not have been shifted yet");
         else if (!timeNow.isAfter(LocalTime.of(17, 0)))
-            return "Unable to un-shift. It is not 5:00 PM yet.";
+//            message =  "Unable to un-shift. It is not 5:00 PM yet.";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Condition not met: It must be 5:00 PM");
         else
-            return "Unable to un-shift. Today's not a double task day!";
+//            message = "Unable to un-shift. Today's not a double task day!";
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Condition not met: Today must be a double task day");
     }
 
     private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {
@@ -162,5 +161,19 @@ public class TaskAssignmentService {
             } else {
                 tasks.add(tasks.size() - 1, tasks.remove(0));
             }
+    }
+
+    private List<TaskAssignmentResponse.SimplifiedTaskAssignment> fetchSimplifiedTaskAssignments() {
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
+
+        taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(
+                new TaskAssignmentResponse.SimplifiedTaskAssignment(
+                        taskAssignment.getPerson().getName(),
+                        taskAssignment.getTask().getName()
+                )
+        ));
+
+        return simplifiedTaskAssignments;
     }
 }
