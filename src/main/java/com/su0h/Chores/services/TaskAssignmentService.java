@@ -1,6 +1,5 @@
 package com.su0h.Chores.services;
 
-import com.su0h.Chores.controllers.TaskAssignmentController;
 import com.su0h.Chores.entities.Metadata;
 import com.su0h.Chores.entities.Task;
 import com.su0h.Chores.entities.TaskAssignment;
@@ -9,10 +8,11 @@ import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public class TaskAssignmentService {
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
     private final DateService dateService;
-    private final Logger logger = LoggerFactory.getLogger(TaskAssignmentController.class);
+    private final Logger logger = LoggerFactory.getLogger(TaskAssignmentService.class);
 
     public TaskAssignmentService(
             TaskAssignmentRepository taskAssignmentRepository,
@@ -41,25 +41,12 @@ public class TaskAssignmentService {
         this.dateService = dateService;
     }
 
-    public ResponseEntity<TaskAssignmentResponse> fetchAllTaskAssignments() {
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-        List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
-
-        for (TaskAssignment taskAssignment : taskAssignments) {
-            simplifiedTaskAssignments.add(new TaskAssignmentResponse.SimplifiedTaskAssignment(
-                taskAssignment.getPerson().getName(),
-                taskAssignment.getTask().getName()
-            ));
-        }
-
-        LocalDateTime lastModified = metadataService.getLastModifiedDate();
-
+    public TaskAssignmentResponse fetchAllTaskAssignments() {
         this.logger.info("Returning latest task assignments");
-
-        return ResponseEntity.ok(new TaskAssignmentResponse(
-                lastModified,
-                simplifiedTaskAssignments
-        ));
+        return new TaskAssignmentResponse(
+                metadataService.getLastModifiedDate(),
+                this.fetchSimplifiedTaskAssignments()
+        );
     }
 
     // https://www.baeldung.com/spring-scheduled-tasks
@@ -81,7 +68,7 @@ public class TaskAssignmentService {
         }
     }
 
-    public ResponseEntity<String> shiftTaskAssignments() {
+    public TaskAssignmentResponse shiftTaskAssignments() {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
@@ -111,11 +98,14 @@ public class TaskAssignmentService {
 
         this.logger.info("Task assignments shifted successfully");
 
-        return ResponseEntity.ok("Shifted successfully!");
+        return new TaskAssignmentResponse(
+                metadataService.getLastModifiedDate(),
+                this.fetchSimplifiedTaskAssignments()
+        );
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
-    public ResponseEntity<String> unshiftTaskAssignments() {
+    public TaskAssignmentResponse unshiftTaskAssignments() {
         LocalDate dateToday = LocalDate.now();
         LocalTime timeNow = LocalTime.now();
         LocalDate lastUnshifted = metadataService.getLastUnshifted();
@@ -160,13 +150,16 @@ public class TaskAssignmentService {
 
             this.logger.info("Task assignments unshifted successfully");
 
-            return ResponseEntity.ok("Unshifted successfully!");
+            return new TaskAssignmentResponse(
+                    metadataService.getLastModifiedDate(),
+                    this.fetchSimplifiedTaskAssignments()
+            );
         }
 
         String message = "Unable to unshift. Condition not met: ";
 
         if (dateToday.isEqual(lastUnshifted)) {
-            message += "Tasks for today msut have not been shifted yet";
+            message += "Tasks for today must have not been shifted yet";
         } else if (!timeNow.isAfter(LocalTime.of(17, 0))) {
             message += "Unshift requests should be made past 5:00 PM";
         } else {
@@ -174,7 +167,8 @@ public class TaskAssignmentService {
         }
 
         this.logger.info(message);
-        return ResponseEntity.ok(message);
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
     }
 
     private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {
@@ -184,5 +178,19 @@ public class TaskAssignmentService {
             } else {
                 tasks.add(tasks.size() - 1, tasks.remove(0));
             }
+    }
+
+    private List<TaskAssignmentResponse.SimplifiedTaskAssignment> fetchSimplifiedTaskAssignments() {
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
+
+        taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(
+                new TaskAssignmentResponse.SimplifiedTaskAssignment(
+                        taskAssignment.getPerson().getName(),
+                        taskAssignment.getTask().getName()
+                )
+        ));
+
+        return simplifiedTaskAssignments;
     }
 }

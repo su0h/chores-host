@@ -1,6 +1,5 @@
 package com.su0h.Chores.entities;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -8,7 +7,7 @@ public class TaskAssignmentResponse {
     private LocalDateTime lastModified;
     private List<SimplifiedTaskAssignment> taskAssignments;
 
-    public TaskAssignmentResponse (LocalDateTime lastModified, List<SimplifiedTaskAssignment> taskAssignments) {
+    public TaskAssignmentResponse(LocalDateTime lastModified, List<SimplifiedTaskAssignment> taskAssignments) {
         this.lastModified = lastModified;
         this.taskAssignments = taskAssignments;
     }
