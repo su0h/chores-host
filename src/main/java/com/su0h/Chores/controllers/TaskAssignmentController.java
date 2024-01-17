@@ -2,17 +2,22 @@ package com.su0h.Chores.controllers;
 
 import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.services.TaskAssignmentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1.0")
 public class TaskAssignmentController {
+    // https://www.baeldung.com/spring-boot-logging
+    private final Logger logger = LoggerFactory.getLogger(TaskAssignmentController.class);
+
     // https://www.geeksforgeeks.org/easiest-way-to-create-rest-api-using-spring-boot/
     private final TaskAssignmentService taskAssignmentService;
 
@@ -20,20 +25,22 @@ public class TaskAssignmentController {
         this.taskAssignmentService = taskAssignmentService;
     }
 
-    @GetMapping("/task_assignments")
+    @GetMapping("/task-assignments")
     public ResponseEntity<TaskAssignmentResponse> getAllTaskAssignments() {
-        return taskAssignmentService.fetchAllTaskAssignments();
+        logger.info("Request made to /task_assignments");
+        return ResponseEntity.ok(taskAssignmentService.fetchAllTaskAssignments());
     }
 
-    @PostMapping("/unshift_task_assignments")
-    public String unshiftTaskAssignments() {
-        return taskAssignmentService.unshiftTaskAssignments().getBody();
+    @PostMapping("/task-assignments/unshift")
+    public ResponseEntity<?> unshiftTaskAssignments() {
+        logger.info("Request made to /task-assignments/unshift");
+        return ResponseEntity.ok(taskAssignmentService.unshiftTaskAssignments());
     }
 
-    // TODO: Remove this; this is used for testing purposes only;
-    //       no API endpoints doing this will be exposed in final version
-    @PostMapping("/shift_task_assignments")
+    @PostMapping("/task-assignments/shift")
     public ResponseEntity<String> shiftTaskAssignments() {
-        return taskAssignmentService.shiftTaskAssignments();
+        logger.warn("Request made to /task-assignments/shift");
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+//        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
     }
 }
