@@ -27,18 +27,19 @@ public class TaskAssignmentController {
 
     @GetMapping("/task-assignments")
     public ResponseEntity<TaskAssignmentResponse> getAllTaskAssignments() {
-        logger.info("Request to /task_assignments made");
+        logger.info("Request made to /task_assignments");
         return ResponseEntity.ok(taskAssignmentService.fetchAllTaskAssignments());
     }
 
     @PostMapping("/task-assignments/unshift")
     public ResponseEntity<?> unshiftTaskAssignments() {
-        logger.info("Request to /unshift_task_assignments made");
+        logger.info("Request made to /task-assignments/unshift");
         return ResponseEntity.ok(taskAssignmentService.unshiftTaskAssignments());
     }
 
     @PostMapping("/task-assignments/shift")
     public ResponseEntity<String> shiftTaskAssignments() {
+        logger.warn("Request made to /task-assignments/shift");
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 //        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
     }

@@ -42,7 +42,7 @@ public class TaskAssignmentService {
     }
 
     public TaskAssignmentResponse fetchAllTaskAssignments() {
-        this.logger.info("Returning latest task assignments");
+        this.logger.info("Returning current task assignments");
         return new TaskAssignmentResponse(
                 metadataService.getLastModifiedDate(),
                 this.fetchSimplifiedTaskAssignments()
