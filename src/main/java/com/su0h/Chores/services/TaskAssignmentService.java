@@ -105,71 +105,109 @@ public class TaskAssignmentService {
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
-    public TaskAssignmentResponse unshiftTaskAssignments() {
-        LocalDate dateToday = LocalDate.now();
-        LocalTime timeNow = LocalTime.now();
-        LocalDate lastUnshifted = metadataService.getLastUnshifted();
+    public TaskAssignmentResponse basicUnshiftTaskAssignments() {
+        // Save all task assignments
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
-        /*
-            Unshift only if:
-            (1) Today is a double task day
-            (2) DB has not been unshifted today yet
-            (3) It is after 5:00 PM already
-         */
-        if (dateService.isDoubleTaskDay(LocalDate.now()) &&
-                !dateToday.isEqual(lastUnshifted) &&
-                timeNow.isAfter(LocalTime.of(17, 0))
-        ) {
-            // Save all task assignments
-            List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        // Empty table of task assignments
+        // Note: ensure that cascade is not set to ALL
+        taskAssignmentRepository.deleteAll();
 
-            // Empty table of task assignments
-            // Note: ensure that cascade is not set to ALL
-            taskAssignmentRepository.deleteAll();
-
-            // Retrieve tasks stored in task assignments
-            ArrayList<Task> tasks = new ArrayList<>();
-            for (TaskAssignment taskAssignment : taskAssignments) {
-                tasks.add(taskAssignment.getTask());
-            }
-
-            // Unshift list of tasks
-            this.shiftTasks(tasks, 1, true);
-
-            // Update task assignments
-            for (int i = 0; i < taskAssignments.size(); i++) {
-                taskAssignments.get(i).setTask(tasks.get(i));
-            }
-
-            // Update Last Modified date
-            metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
-            metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
-
-            // Save updated task assignments
-            taskAssignmentRepository.saveAll(taskAssignments);
-
-            this.logger.info("Task assignments unshifted successfully");
-
-            return new TaskAssignmentResponse(
-                    metadataService.getLastModifiedDate(),
-                    this.fetchSimplifiedTaskAssignments()
-            );
+        // Retrieve tasks stored in task assignments
+        ArrayList<Task> tasks = new ArrayList<>();
+        for (TaskAssignment taskAssignment : taskAssignments) {
+            tasks.add(taskAssignment.getTask());
         }
 
-        String message = "Unable to unshift. Condition not met: ";
+        // Unshift list of tasks
+        this.shiftTasks(tasks, 1, true);
 
-        if (dateToday.isEqual(lastUnshifted)) {
-            message += "Tasks for today must have not been shifted yet";
-        } else if (!timeNow.isAfter(LocalTime.of(17, 0))) {
-            message += "Unshift requests should be made past 5:00 PM";
-        } else {
-            message += "Today is not a double task day";
+        // Update task assignments
+        for (int i = 0; i < taskAssignments.size(); i++) {
+            taskAssignments.get(i).setTask(tasks.get(i));
         }
 
-        this.logger.info(message);
+        // Update Last Modified date
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
 
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        // Save updated task assignments
+        taskAssignmentRepository.saveAll(taskAssignments);
+
+        this.logger.info("Task assignments unshifted successfully");
+
+        return new TaskAssignmentResponse(
+                metadataService.getLastModifiedDate(),
+                this.fetchSimplifiedTaskAssignments()
+        );
     }
+// Note: Condition checking temporarily removed; an honesty system is temporarily in place
+//    public TaskAssignmentResponse unshiftTaskAssignments() {
+//        LocalDate dateToday = LocalDate.now();
+//        LocalTime timeNow = LocalTime.now();
+//        LocalDate lastUnshifted = metadataService.getLastUnshifted();
+//
+//        /*
+//            Unshift only if:
+//            (1) Today is a double task day
+//            (2) DB has not been unshifted today yet
+//            (3) It is after 5:00 PM already
+//         */
+//        if (
+//                dateService.isDoubleTaskDay(LocalDate.now()) &&
+//                !dateToday.isEqual(lastUnshifted) &&
+//                timeNow.isAfter(LocalTime.of(17, 0))
+//        ) {
+//            // Save all task assignments
+//            List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+//
+//            // Empty table of task assignments
+//            // Note: ensure that cascade is not set to ALL
+//            taskAssignmentRepository.deleteAll();
+//
+//            // Retrieve tasks stored in task assignments
+//            ArrayList<Task> tasks = new ArrayList<>();
+//            for (TaskAssignment taskAssignment : taskAssignments) {
+//                tasks.add(taskAssignment.getTask());
+//            }
+//
+//            // Unshift list of tasks
+//            this.shiftTasks(tasks, 1, true);
+//
+//            // Update task assignments
+//            for (int i = 0; i < taskAssignments.size(); i++) {
+//                taskAssignments.get(i).setTask(tasks.get(i));
+//            }
+//
+//            // Update Last Modified date
+//            metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
+//            metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
+//
+//            // Save updated task assignments
+//            taskAssignmentRepository.saveAll(taskAssignments);
+//
+//            this.logger.info("Task assignments unshifted successfully");
+//
+//            return new TaskAssignmentResponse(
+//                    metadataService.getLastModifiedDate(),
+//                    this.fetchSimplifiedTaskAssignments()
+//            );
+//        }
+//
+//        String message = "Unable to unshift. Condition not met: ";
+//
+//        if (dateToday.isEqual(lastUnshifted)) {
+//            message += "Tasks for today must have not been shifted yet";
+//        } else if (!timeNow.isAfter(LocalTime.of(17, 0))) {
+//            message += "Unshift requests should be made past 5:00 PM";
+//        } else {
+//            message += "Today is not a double task day";
+//        }
+//
+//        this.logger.info(message);
+//
+//        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+//    }
 
     private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {
         for (int i = 0; i < shiftAmount; i++)

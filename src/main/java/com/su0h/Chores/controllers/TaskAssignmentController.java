@@ -44,7 +44,7 @@ public class TaskAssignmentController {
     @PostMapping("/task-assignments/unshift")
     public ResponseEntity<?> unshiftTaskAssignments() {
         logger.info("Request made to /task-assignments/unshift");
-        return ResponseEntity.ok(taskAssignmentService.unshiftTaskAssignments());
+        return ResponseEntity.ok(taskAssignmentService.basicUnshiftTaskAssignments());
     }
 
     @PostMapping("/task-assignments/shift")
