@@ -11,7 +11,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 @CrossOrigin(
         origins = {
+                "http://localhost:4200",
+                "https://localhost:4200",
+                "http://127.0.0.1:4200",
+                "https://127.0.0.1:4200",
                 "http://192.168.1.92:4200",
+                "https://192.168.1.92:4200",
                 "http://chores.local",
                 "https://chores.local"
         },
