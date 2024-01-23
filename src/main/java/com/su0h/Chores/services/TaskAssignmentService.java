@@ -49,14 +49,16 @@ public class TaskAssignmentService {
         );
     }
 
+    // Useful References on Spring Scheduling w/ CRON:
     // https://www.baeldung.com/spring-scheduled-tasks
-    @Scheduled(cron = "* 0 0 * * *") // Runs every 12:00 AM
+    // https://stackoverflow.com/questions/60662943/spring-scheduled-cron-job-running-too-many-times
+    @Scheduled(cron = "0 0 0 * * *") // Runs every 12:00 AM
     private void performDailyScheduledShifting() {
         this.logger.info("12:00 AM scheduled shifting triggered");
         this.shiftTaskAssignments();
     }
 
-    @Scheduled(cron = "* 0 17 * * *") // Runs every 5:00 PM
+    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
     private void performDoubleTaskScheduledShifting() {
         this.logger.info("5:00 PM scheduled shifting triggered");
         // Run only if today is a double task day (i.e., holiday, weekend)
