@@ -3,6 +3,7 @@ package com.su0h.Chores;
 import com.su0h.Chores.entities.*;
 import com.su0h.Chores.repositories.*;
 import jakarta.transaction.Transactional;
+import org.hibernate.cfg.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,43 +38,43 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-//        this.logger.info("Initializing database content...");
-//
-//        this.logger.info("Adding persons...");
-//        // Create Persons
-//        List<Person> personList = new ArrayList<>();
-//
-//        personList.add(new Person("Andre"));
-//        personList.add(new Person("Nikki"));
-//        personList.add(new Person("Adrian"));
-//
-//        personRepository.saveAll(personList);
-//
-//        this.logger.info("Adding tasks...");
-//        // Create Tasks
-//        List<Task> taskList = new ArrayList<>();
-//
-//        taskList.add(new Task("Hain"));
-//        taskList.add(new Task("Ligpit"));
-//        taskList.add(new Task("Hugas"));
-//
-//        taskRepository.saveAll(taskList);
-//
-//        this.logger.info("Adding task assignments...");
-//        // Create and save Task Assignments
-//        for (int i = 0; i < personList.size(); i++) {
-//            TaskAssignment taskAssignment = new TaskAssignment(personList.get(i), taskList.get(i));
-//            taskAssignmentRepository.save(taskAssignment);
-//        }
-//
-//        this.logger.info("Setting up the metadata...");
-//        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
-//        metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.of(2024, 1, 1).toString()));
-//
-//        this.logger.info("Adding holidays...");
-//        this.initializeHolidays();
-//
-//        this.logger.info("Done");
+        this.logger.info("Initializing database content...");
+
+        this.logger.info("Adding persons...");
+        // Create Persons
+        List<Person> personList = new ArrayList<>();
+
+        personList.add(new Person("Alice"));
+        personList.add(new Person("Bob"));
+        personList.add(new Person("Charlie"));
+
+        personRepository.saveAll(personList);
+
+        this.logger.info("Adding tasks...");
+        // Create Tasks
+        List<Task> taskList = new ArrayList<>();
+
+        taskList.add(new Task("Hain"));
+        taskList.add(new Task("Ligpit"));
+        taskList.add(new Task("Hugas"));
+
+        taskRepository.saveAll(taskList);
+
+        this.logger.info("Adding task assignments...");
+        // Create and save Task Assignments
+        for (int i = 0; i < personList.size(); i++) {
+            TaskAssignment taskAssignment = new TaskAssignment(personList.get(i), taskList.get(i));
+            taskAssignmentRepository.save(taskAssignment);
+        }
+
+        this.logger.info("Setting up the metadata...");
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
+        metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.of(2024, 1, 1).toString()));
+
+        this.logger.info("Adding holidays...");
+        this.initializeHolidays();
+
+        this.logger.info("Done");
     }
 
     private void initializeHolidays() {
@@ -91,8 +92,8 @@ public class DataInitializer implements CommandLineRunner {
         holidayRepository.save(new Holiday("All Saints' Day", LocalDate.of(2024, 11, 1)));
         holidayRepository.save(new Holiday("All Souls' Day", LocalDate.of(2024, 11, 2)));
         holidayRepository.save(new Holiday("Bonifacio Day", LocalDate.of(2024, 11, 30)));
-        holidayRepository.save(new Holiday("Feast of the Immaculate Conception of mary", LocalDate.of(2024, 12, 8)));
-        holidayRepository.save(new Holiday("Christmas Evve", LocalDate.of(2024, 12, 24)));
+        holidayRepository.save(new Holiday("Feast of the Immaculate Conception of Mary", LocalDate.of(2024, 12, 8)));
+        holidayRepository.save(new Holiday("Christmas Eve", LocalDate.of(2024, 12, 24)));
         holidayRepository.save(new Holiday("Christmas Day", LocalDate.of(2024, 12, 25)));
         holidayRepository.save(new Holiday("Rizal Day", LocalDate.of(2024, 12, 30)));
         holidayRepository.save(new Holiday("Last Day of the Year", LocalDate.of(2024, 12, 31)));
