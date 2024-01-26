@@ -26,11 +26,6 @@ WORKDIR /app
 # Copy the JAR file from the build stage
 COPY --from=build /app/build/libs/Chores-1.0.jar /app/
 
-# Environment Variables
-ENV DB_USER_NAME=postgres
-ENV DB_PASSWORD=P@ssw0rd123
-ENV DB_URL="jdbc:postgresql://localhost:5432/chores"
-
 # Expose the port the app runs on
 EXPOSE 8080
 
