@@ -17,8 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
                 "https://127.0.0.1:4200",
                 "http://192.168.1.92:4200",
                 "https://192.168.1.92:4200",
-                "http://chores.local",
-                "https://chores.local"
+                "http://chores.home.arpa",
+                "https://chores.home.arpa"
         },
         maxAge = 3600
 )
@@ -48,9 +48,9 @@ public class TaskAssignmentController {
     }
 
     @PostMapping("/task-assignments/shift")
-    public ResponseEntity<String> shiftTaskAssignments() {
+    public ResponseEntity<TaskAssignmentResponse> shiftTaskAssignments() {
         logger.warn("Request made to /task-assignments/shift");
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-//        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
+//        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
     }
 }
