@@ -85,7 +85,7 @@ public class TaskAssignmentService {
         }
 
         // Shift list of tasks
-        this.shiftTasks(tasks, 1, false);
+        this.shiftTasks(tasks, 1, true);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
@@ -122,7 +122,7 @@ public class TaskAssignmentService {
         }
 
         // Unshift list of tasks
-        this.shiftTasks(tasks, 1, true);
+        this.shiftTasks(tasks, 1, false);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
