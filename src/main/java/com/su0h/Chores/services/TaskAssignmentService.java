@@ -8,21 +8,22 @@ import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @EnableScheduling
 public class TaskAssignmentService {
+    @Value("${env.shift-right}")
+    private boolean shiftRight;
+
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
@@ -52,13 +53,15 @@ public class TaskAssignmentService {
     // Useful References on Spring Scheduling w/ CRON:
     // https://www.baeldung.com/spring-scheduled-tasks
     // https://stackoverflow.com/questions/60662943/spring-scheduled-cron-job-running-too-many-times
-    @Scheduled(cron = "0 0 0 * * *") // Runs every 12:00 AM
+//    @Scheduled(cron = "0 0 0 * * *") // Runs every 12:00 AM
+    @Scheduled(cron = "${env.cron.first-rotation}")
     private void performDailyScheduledShifting() {
         this.logger.info("12:00 AM scheduled shifting triggered");
         this.shiftTaskAssignments();
     }
 
-    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
+//    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
+    @Scheduled(cron = "${env.cron.second-rotation}")
     private void performDoubleTaskScheduledShifting() {
         this.logger.info("5:00 PM scheduled shifting triggered");
         // Run only if today is a double task day (i.e., holiday, weekend)
@@ -85,7 +88,7 @@ public class TaskAssignmentService {
         }
 
         // Shift list of tasks
-        this.shiftTasks(tasks, 1, true);
+        this.shiftTasks(tasks, 1, !this.shiftRight);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
@@ -122,7 +125,7 @@ public class TaskAssignmentService {
         }
 
         // Unshift list of tasks
-        this.shiftTasks(tasks, 1, false);
+        this.shiftTasks(tasks, 1, this.shiftRight);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
