@@ -21,15 +21,15 @@ This "collective second-guessing" can sometimes be a tedious scenario to deal wi
 *P.S. I decided to add a Spring Boot backend since I needed to keep track of the current state of task assignments, and I also needed to keep track of when to shift once or twice (or even undo a shift when no chores were done for a certain schedule; this required a database). I simply could not make this work with an Angular frontend alone.*
 
 ## Installation
-1. Build a Docker image using the Dockerfile provided at the root directory of the project: `docker build -t <image_name>`
-2. Run the image in a container with the following command: `docker run -p 8080:8080 <image_name>`
+1. Build a Docker image using the Dockerfile provided at the root directory of the project: `docker build -t <image_name> .`
+2. Run the image in a container with the following command: `docker run -p 8080:8080 -e DB_USER_NAME=<db_username> -e DB_PASSWORD=<db_user_password> -e DB_URL=<postgres_jdbc_url> -e TZ=<local_timezone> <image_name>`
 3. Access the API via `http://localhost:8080/api/v1.0/...`
 4. Ensure that the Postgres database (with a `chores` database) is running as well
 
 ## API Usage
 As of `v1.0`, there are only two (2) ways to interact with the API:
 1. A `GET` request to `.../task-assignments` will return a JSON with the following structure:
-```json
+```
 {
     "lastModified": STRING, 
     "taskAssignments": [
