@@ -48,9 +48,9 @@ public class HolidayController {
         return ResponseEntity.ok(holidayService.fetchAllHolidays());
     }
 
-    @GetMapping("/is_holiday_today")
+    @GetMapping("/is-holiday-today")
     public ResponseEntity<Boolean> isTodayAHoliday() {
-        logger.info("Request made to /is_holiday_today");
+        logger.info("Request made to /is-holiday-today");
         return ResponseEntity.ok(dateService.isHoliday(LocalDate.now()));
     }
 }
