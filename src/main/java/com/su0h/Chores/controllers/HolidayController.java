@@ -1,6 +1,7 @@
 package com.su0h.Chores.controllers;
 
 import com.su0h.Chores.entities.Holiday;
+import com.su0h.Chores.entities.HolidayResponse;
 import com.su0h.Chores.services.DateService;
 import com.su0h.Chores.services.HolidayService;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,18 @@ public class HolidayController {
     }
 
     @GetMapping("/is-holiday-today")
-    public ResponseEntity<Boolean> isTodayAHoliday() {
+    public ResponseEntity<HolidayResponse> isTodayAHoliday() {
         logger.info("Request made to /is-holiday-today");
-        return ResponseEntity.ok(dateService.isHoliday(LocalDate.now()));
+
+        if (dateService.isHoliday(LocalDate.now()))
+            return ResponseEntity.ok(new HolidayResponse(
+                    dateService.getHolidayName(LocalDate.now()),
+                    true
+            ));
+
+        return ResponseEntity.ok(new HolidayResponse(
+                null,
+                false
+        ));
     }
 }
