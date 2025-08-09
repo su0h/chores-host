@@ -26,4 +26,8 @@ public class DateService {
         Holiday holidayFound = holidayRepository.findByDate(date);
         return holidayFound != null;
     }
+
+    public Holiday getHolidayName(LocalDate date) {
+        return holidayRepository.findByDate(date);
+    }
 }
