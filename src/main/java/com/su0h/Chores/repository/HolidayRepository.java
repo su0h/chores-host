@@ -1,6 +1,6 @@
-package com.su0h.Chores.repositories;
+package com.su0h.Chores.repository;
 
-import com.su0h.Chores.entities.Holiday;
+import com.su0h.Chores.entity.Holiday;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

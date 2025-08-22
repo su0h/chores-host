@@ -1,9 +1,9 @@
-package com.su0h.Chores.controllers;
+package com.su0h.Chores.controller;
 
-import com.su0h.Chores.entities.Holiday;
-import com.su0h.Chores.entities.HolidayResponse;
-import com.su0h.Chores.services.DateService;
-import com.su0h.Chores.services.HolidayService;
+import com.su0h.Chores.entity.Holiday;
+import com.su0h.Chores.dto.response.HolidayResponse;
+import com.su0h.Chores.service.DateService;
+import com.su0h.Chores.service.HolidayService;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

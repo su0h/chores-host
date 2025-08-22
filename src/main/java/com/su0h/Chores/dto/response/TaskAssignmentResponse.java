@@ -1,4 +1,4 @@
-package com.su0h.Chores.entities;
+package com.su0h.Chores.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

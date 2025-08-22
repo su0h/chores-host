@@ -1,11 +1,11 @@
-package com.su0h.Chores.entities;
+package com.su0h.Chores.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "person")
-public class Person {
+@Table(name = "task")
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -13,20 +13,20 @@ public class Person {
     @Column(nullable = false)
     private String name;
 
-    @OneToOne(mappedBy = "person")
+    @OneToOne(mappedBy = "task")
     // https://stackoverflow.com/questions/75757132/failure-while-trying-to-resolve-exception-org-springframework-http-converter-ht
     @JsonIgnore
     private TaskAssignment taskAssignment;
 
-    protected Person() {}
+    protected Task() {}
 
-    public Person(String name) {
+    public Task(String name) {
         this.name = name;
     }
 
     public String toString() {
         return String.format(
-                "User[id=%d, name='%s']",
+                "Task[id=%d, name='%s']",
                 this.id, this.name
         );
     }

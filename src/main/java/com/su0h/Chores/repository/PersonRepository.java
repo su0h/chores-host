@@ -1,6 +1,6 @@
-package com.su0h.Chores.repositories;
+package com.su0h.Chores.repository;
 
-import com.su0h.Chores.entities.Person;
+import com.su0h.Chores.entity.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

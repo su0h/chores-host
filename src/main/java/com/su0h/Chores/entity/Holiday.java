@@ -1,4 +1,4 @@
-package com.su0h.Chores.entities;
+package com.su0h.Chores.entity;
 
 import jakarta.persistence.*;
 

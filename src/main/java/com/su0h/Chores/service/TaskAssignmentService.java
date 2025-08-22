@@ -1,11 +1,11 @@
-package com.su0h.Chores.services;
+package com.su0h.Chores.service;
 
-import com.su0h.Chores.entities.Metadata;
-import com.su0h.Chores.entities.Task;
-import com.su0h.Chores.entities.TaskAssignment;
-import com.su0h.Chores.entities.TaskAssignmentResponse;
-import com.su0h.Chores.repositories.MetadataRepository;
-import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import com.su0h.Chores.entity.Metadata;
+import com.su0h.Chores.entity.Task;
+import com.su0h.Chores.entity.TaskAssignment;
+import com.su0h.Chores.dto.response.TaskAssignmentResponse;
+import com.su0h.Chores.repository.MetadataRepository;
+import com.su0h.Chores.repository.TaskAssignmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

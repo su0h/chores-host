@@ -1,7 +1,7 @@
-package com.su0h.Chores.services;
+package com.su0h.Chores.service;
 
-import com.su0h.Chores.entities.Holiday;
-import com.su0h.Chores.repositories.HolidayRepository;
+import com.su0h.Chores.entity.Holiday;
+import com.su0h.Chores.repository.HolidayRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;

@@ -1,4 +1,6 @@
-package com.su0h.Chores.entities;
+package com.su0h.Chores.dto.response;
+
+import com.su0h.Chores.entity.Holiday;
 
 import java.time.LocalDate;
 

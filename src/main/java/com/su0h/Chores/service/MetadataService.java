@@ -1,7 +1,7 @@
-package com.su0h.Chores.services;
+package com.su0h.Chores.service;
 
-import com.su0h.Chores.entities.Metadata;
-import com.su0h.Chores.repositories.MetadataRepository;
+import com.su0h.Chores.entity.Metadata;
+import com.su0h.Chores.repository.MetadataRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

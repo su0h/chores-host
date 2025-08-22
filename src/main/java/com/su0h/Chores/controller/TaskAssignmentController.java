@@ -1,7 +1,7 @@
-package com.su0h.Chores.controllers;
+package com.su0h.Chores.controller;
 
-import com.su0h.Chores.entities.TaskAssignmentResponse;
-import com.su0h.Chores.services.TaskAssignmentService;
+import com.su0h.Chores.dto.response.TaskAssignmentResponse;
+import com.su0h.Chores.service.TaskAssignmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
