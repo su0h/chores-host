@@ -40,12 +40,13 @@ public class ApiKey {
 
     public ApiKey() {}
 
-    public ApiKey(String keyHash, String name, Integer expirationInDays, String description) {
+    public ApiKey(String keyHash, String name, Integer expirationInDays, String description, String ownerId) {
         this.keyHash = keyHash;
         this.name = name;
         this.description = description;
         this.createdAt = LocalDateTime.now();
         this.expiresAt = this.createdAt.plusDays(expirationInDays);
+        this.ownerId = ownerId;
     }
     
     public Long getId() { return id; }

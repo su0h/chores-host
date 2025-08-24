@@ -2,6 +2,7 @@ package com.su0h.Chores.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public class ApiKeyRequest {
@@ -12,13 +13,18 @@ public class ApiKeyRequest {
     private String description;
 
     @NotNull(message = "Days to expiration value is required")
+    @Positive
     private Integer expirationDays;
+
+    @NotNull(message = "Owner ID is required")
+    private String ownerId;
 
     public ApiKeyRequest() {}
 
-    public ApiKeyRequest(String name, Integer expirationDays) {
+    public ApiKeyRequest(String name, Integer expirationDays, String ownerId) {
         this.name = name;
         this.expirationDays = expirationDays;
+        this.ownerId = ownerId;
     }
 
     public String getName() { return name; }
@@ -29,4 +35,8 @@ public class ApiKeyRequest {
 
     public Integer getExpirationDays() { return expirationDays; }
     public void setExpirationDays(Integer expirationDays) { this.expirationDays = expirationDays; }
+
+    public String getOwnerId() { return ownerId; }
+
+    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
 }

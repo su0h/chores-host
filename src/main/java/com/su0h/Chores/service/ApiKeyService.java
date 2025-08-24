@@ -26,9 +26,16 @@ public class ApiKeyService {
     public Optional<ApiKey> findValidApiKey(String keyValue) {
         List<ApiKey> activeKeys = apiKeyRepository.findAllByActiveTrue();
 
+        activeKeys.stream()
+                .filter(this::isExpired)
+                .forEach(key -> {
+                    key.setActive(false);
+                    apiKeyRepository.save(key);
+                });
+
         return activeKeys.stream()
                 .filter(key -> passwordEncoder.matches(keyValue, key.getKeyValueHash()))
-                .filter(this::isNotExpired)
+                .filter(key -> !isExpired(key))
                 .findFirst();
     }
 
@@ -37,7 +44,7 @@ public class ApiKeyService {
         secureRandom.nextBytes(keyBytes);
         String keyValue = "ak_" + Base64.getUrlEncoder().withoutPadding().encodeToString(keyBytes);
         String hashedKey = passwordEncoder.encode(keyValue);
-        ApiKey apiKey = new ApiKey(hashedKey, request.getName(), request.getExpirationDays(), request.getDescription());
+        ApiKey apiKey = new ApiKey(hashedKey, request.getName(), request.getExpirationDays(), request.getDescription(), request.getOwnerId());
         ApiKey savedKey = apiKeyRepository.save(apiKey);
         return new GeneratedApiKey(keyValue, savedKey);
     }
@@ -74,7 +81,7 @@ public class ApiKeyService {
 
     public record GeneratedApiKey(String plainKey, ApiKey apiKey) {}
 
-    private boolean isNotExpired(ApiKey key) {
-        return key.getExpiresAt() == null || key.getExpiresAt().isAfter(LocalDateTime.now());
+    private boolean isExpired(ApiKey key) {
+        return key.getExpiresAt() == null || key.getExpiresAt().isBefore(LocalDateTime.now());
     }
 }
