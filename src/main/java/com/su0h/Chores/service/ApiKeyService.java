@@ -13,6 +13,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ApiKeyService {
@@ -22,18 +23,14 @@ public class ApiKeyService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public boolean validateApiKey(String keyValue) {
+    public Optional<ApiKey> findValidApiKey(String keyValue) {
         List<ApiKey> activeKeys = apiKeyRepository.findAllByActiveTrue();
 
-        for (ApiKey key : activeKeys) {
-            if (passwordEncoder.matches(keyValue, key.getKeyValueHash())) {
-                return key.getExpiresAt() == null || key.getExpiresAt().isAfter(LocalDateTime.now());
-            }
-        }
-
-        return false;
+        return activeKeys.stream()
+                .filter(key -> passwordEncoder.matches(keyValue, key.getKeyValueHash()))
+                .filter(this::isNotExpired)
+                .findFirst();
     }
-
 
     public GeneratedApiKey generateApiKey(ApiKeyRequest request) {
         byte[] keyBytes = new byte[32];
@@ -46,14 +43,11 @@ public class ApiKeyService {
     }
 
     public void revokeApiKey(String keyValue) {
-        List<ApiKey> activeKeys = apiKeyRepository.findAllByActiveTrue();
-
-        for (ApiKey key: activeKeys) {
-            if (passwordEncoder.matches(keyValue, key.getKeyValueHash())) {
-                key.setActive(false);
-                apiKeyRepository.save(key);
-                return;
-            }
+        ApiKey key = this.getApiKey(keyValue);
+        if(key != null) {
+            key.setActive(false);
+            apiKeyRepository.save(key);
+            return;
         }
 
         // If we reach here, the API key wasn't found among active keys
@@ -73,14 +67,14 @@ public class ApiKeyService {
     }
 
     public List<ApiKey> getApiKeys() {
-        System.out.println("getApiKeys() Start: " + LocalDateTime.now());
-        List<ApiKey> result = apiKeyRepository.findAllByActiveTrue()
+        return apiKeyRepository.findAllByActiveTrue()
                 .stream()
                 .toList();
-
-        System.out.println("getApiKeys() End: " + LocalDateTime.now());
-        return result;
     }
 
     public record GeneratedApiKey(String plainKey, ApiKey apiKey) {}
+
+    private boolean isNotExpired(ApiKey key) {
+        return key.getExpiresAt() == null || key.getExpiresAt().isAfter(LocalDateTime.now());
+    }
 }

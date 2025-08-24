@@ -3,6 +3,7 @@ package com.su0h.Chores.config;
 import com.su0h.Chores.security.ApiKeyAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,11 +23,16 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable) // disable CSRF for API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**", "/health").permitAll() // no auth
-                        // ak_93Orhl1-8T1SJwTCu6ClJ3dERREIuSBLvcImUcImE7M
-                        .requestMatchers("/api/admin/**").permitAll()
-                        .requestMatchers("/api/**").authenticated() // requires API key
-                        .anyRequest().permitAll() // everything else is open
+                        .requestMatchers("/public/**", "/health").permitAll()
+                        .requestMatchers("/api/v1.2/tokens").hasRole("ADMIN")
+                        .requestMatchers("/api/v1.2/tokens/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasAuthority("WRITE")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("WRITE")
+                        .requestMatchers(HttpMethod.PATCH, "/api/**").hasAuthority("WRITE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("DELETE")
+                        .requestMatchers(HttpMethod.GET, "/api/**").hasAuthority("READ")
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(apiKeyAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

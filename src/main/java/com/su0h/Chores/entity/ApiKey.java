@@ -2,12 +2,8 @@ package com.su0h.Chores.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.su0h.Chores.common.enums.Role;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "api_keys")
@@ -22,10 +18,16 @@ public class ApiKey {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "owner_id", nullable = false)
+    private String ownerId;
+
     private String description;
 
     @Column(nullable = false)
     private boolean active = true;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.READ_ONLY;
     
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -69,4 +71,12 @@ public class ApiKey {
     
     public LocalDateTime getLastUsed() { return lastUsed; }
     public void setLastUsed(LocalDateTime lastUsed) { this.lastUsed = lastUsed; }
+
+    public String getOwnerId() { return ownerId; }
+
+    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
+
+    public Role getRole() { return role; }
+
+    public void setRole(Role role) { this.role = role; }
 }

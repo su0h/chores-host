@@ -37,7 +37,7 @@ public class ApiKeyController {
     }
 
     @DeleteMapping("/revoke")
-    public ResponseEntity<?> revokeApiKey(@RequestBody RevokeKeyRequest request) {
+    public ResponseEntity<?> revokeApiKey(@Valid @RequestBody RevokeKeyRequest request) {
         try {
             apiKeyService.revokeApiKey(request.getKeyValue());
             return ResponseEntity.ok(new MessageResponse("API key revoked successfully"));
@@ -53,7 +53,6 @@ public class ApiKeyController {
     @GetMapping("")
     public ResponseEntity<?> getApiKeys() {
         try {
-            System.out.println("CONTROLLER: " + LocalDateTime.now());
             return ResponseEntity.ok(apiKeyService.getApiKeys());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Failed to retrieve API keys"));
