@@ -1,5 +1,6 @@
 package com.su0h.Chores.services;
 
+import com.su0h.Chores.clients.HolidayClient;
 import com.su0h.Chores.entities.Holiday;
 import com.su0h.Chores.repositories.HolidayRepository;
 import org.springframework.stereotype.Service;
@@ -10,9 +11,11 @@ import java.time.LocalDate;
 @Service
 public class DateService {
     private final HolidayRepository holidayRepository;
+    private final HolidayClient holidayClient;
 
-    public DateService(HolidayRepository holidayRepository) {
+    public DateService(HolidayRepository holidayRepository, HolidayClient holidayClient) {
         this.holidayRepository = holidayRepository;
+        this.holidayClient = holidayClient;
     }
     public boolean isDoubleTaskDay(LocalDate date) {
         return isWeekend(date) || isHoliday(date);
@@ -23,8 +26,7 @@ public class DateService {
     }
 
     public boolean isHoliday(LocalDate date) {
-        Holiday holidayFound = holidayRepository.findByDate(date);
-        return holidayFound != null;
+        return holidayClient.checkHoliday(date).isHoliday();
     }
 
     public Holiday getHolidayName(LocalDate date) {

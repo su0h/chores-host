@@ -11,15 +11,19 @@ spring:
     username: ${DB_USER_NAME}
     password: ${DB_PASSWORD}
   profiles:
-    active: ${ENV}
+    active: ${ENV:DEV}
 
 server:
   error:
     include-message: always
 
 env:
-  cors-origin: ${CORS_ORIGIN}
+  cors-origin: ${CORS_ORIGIN:*}
   cron:
     first-rotation: ${CRON_FIRST:0 0 0 * * *}
     second-rotation: ${CRON_SECOND:0 0 17 * * *}
   shift-right: ${SHIFT_RIGHT:true}
+
+holidays:
+  api:
+    base-url: ${HOLIDAYS_API_ENDPOINT:"https://holidays-api.home.anhoray.com"}
