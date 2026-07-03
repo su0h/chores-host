@@ -253,4 +253,39 @@ public class TaskAssignmentServiceTest {
             assertEquals(TaskAssignment.Status.PENDING, ta.getStatus());
         }
     }
+
+    @Test
+    void testPerformDailyScheduledShifting_AlwaysShifts() {
+        TaskAssignmentService spyService = spy(taskAssignmentService);
+        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
+                .when(spyService).shiftTaskAssignments();
+
+        spyService.performDailyScheduledShifting();
+
+        verify(spyService).shiftTaskAssignments();
+    }
+
+    @Test
+    void testPerformSecondScheduledShifting_ShiftsWhenActivityDetected() {
+        when(taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)).thenReturn(true);
+
+        TaskAssignmentService spyService = spy(taskAssignmentService);
+        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
+                .when(spyService).shiftTaskAssignments();
+
+        spyService.performSecondScheduledShifting();
+
+        verify(spyService).shiftTaskAssignments();
+    }
+
+    @Test
+    void testPerformSecondScheduledShifting_SkipsWhenNoActivity() {
+        when(taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)).thenReturn(false);
+
+        TaskAssignmentService spyService = spy(taskAssignmentService);
+
+        spyService.performSecondScheduledShifting();
+
+        verify(spyService, never()).shiftTaskAssignments();
+    }
 }
