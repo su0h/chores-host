@@ -10,7 +10,9 @@ import java.time.LocalDate;
 @Table(name = "metadata")
 public class Metadata {
     @Id
+    @jakarta.persistence.Column(name = "\"key\"")
     private String key;
+    @jakarta.persistence.Column(name = "\"value\"")
     private String value;
 
     public static enum Key {

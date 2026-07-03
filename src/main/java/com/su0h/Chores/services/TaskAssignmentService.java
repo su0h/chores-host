@@ -1,9 +1,6 @@
 package com.su0h.Chores.services;
 
-import com.su0h.Chores.entities.Metadata;
-import com.su0h.Chores.entities.Task;
-import com.su0h.Chores.entities.TaskAssignment;
-import com.su0h.Chores.entities.TaskAssignmentResponse;
+import com.su0h.Chores.entities.*;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.slf4j.Logger;
@@ -75,11 +72,7 @@ public class TaskAssignmentService {
 
     public TaskAssignmentResponse shiftTaskAssignments() {
         // Save all task assignments
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-
-        // Empty table of task assignments
-        // Note: ensure that cascade is not set to ALL
-        taskAssignmentRepository.deleteAll();
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();;
 
         // Retrieve tasks stored in task assignments
         ArrayList<Task> tasks = new ArrayList<>();
@@ -93,6 +86,7 @@ public class TaskAssignmentService {
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
             taskAssignments.get(i).setTask(tasks.get(i));
+            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
         }
 
         // Update Last Modified date
@@ -114,10 +108,6 @@ public class TaskAssignmentService {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
 
-        // Empty table of task assignments
-        // Note: ensure that cascade is not set to ALL
-        taskAssignmentRepository.deleteAll();
-
         // Retrieve tasks stored in task assignments
         ArrayList<Task> tasks = new ArrayList<>();
         for (TaskAssignment taskAssignment : taskAssignments) {
@@ -130,6 +120,7 @@ public class TaskAssignmentService {
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
             taskAssignments.get(i).setTask(tasks.get(i));
+            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
         }
 
         // Update Last Modified date
@@ -144,6 +135,36 @@ public class TaskAssignmentService {
         return new TaskAssignmentResponse(
                 metadataService.getLastModifiedDate(),
                 this.fetchSimplifiedTaskAssignments()
+        );
+    }
+
+    public TaskAcknowledgeResponse getAcknowledgeInfo(Long taskId) {
+        TaskAssignment taskAssignment = taskAssignmentRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new TaskAssignmentNotFoundException(taskId));
+
+        return new TaskAcknowledgeResponse(
+                taskAssignment.getTask().getId(),
+                taskAssignment.getTask().getName(),
+                taskAssignment.getStatus()
+        );
+    }
+
+    public TaskAcknowledgeResponse acknowledgeTask(Long taskId) {
+        TaskAssignment taskAssignment = taskAssignmentRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new TaskAssignmentNotFoundException(taskId));
+
+        if (taskAssignment.getStatus() != TaskAssignment.Status.DONE) {
+            taskAssignment.setStatus(TaskAssignment.Status.DONE);
+            taskAssignmentRepository.save(taskAssignment);
+            this.logger.info("Task {} acknowledged as done", taskId);
+        } else {
+            this.logger.info("Task {} was already marked done", taskId);
+        }
+
+        return new TaskAcknowledgeResponse(
+                taskAssignment.getTask().getId(),
+                taskAssignment.getTask().getName(),
+                taskAssignment.getStatus()
         );
     }
 // Note: Condition checking temporarily removed; an honesty system is temporarily in place
@@ -230,7 +251,8 @@ public class TaskAssignmentService {
         taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(
                 new TaskAssignmentResponse.SimplifiedTaskAssignment(
                         taskAssignment.getPerson().getName(),
-                        taskAssignment.getTask().getName()
+                        taskAssignment.getTask().getName(),
+                        taskAssignment.getStatus()
                 )
         ));
 
