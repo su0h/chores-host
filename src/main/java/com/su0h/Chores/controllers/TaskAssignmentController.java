@@ -1,7 +1,6 @@
 package com.su0h.Chores.controllers;
 
 import com.su0h.Chores.entities.TaskAcknowledgeResponse;
-import com.su0h.Chores.entities.TaskAssignmentNotFoundException;
 import com.su0h.Chores.entities.TaskAssignmentResponse;
 import com.su0h.Chores.services.TaskAssignmentService;
 import org.slf4j.Logger;
@@ -49,11 +48,13 @@ public class TaskAssignmentController {
 
     @GetMapping("/task-assignments/acknowledge/{taskId}")
     public ResponseEntity<TaskAcknowledgeResponse> getAcknowledgeInfo(@PathVariable Long taskId) {
+        logger.info("Request made to GET /task-assignments/acknowledge/{}", taskId);
         return ResponseEntity.ok(taskAssignmentService.getAcknowledgeInfo(taskId));
     }
 
     @PostMapping("/task-assignments/acknowledge/{taskId}")
     public ResponseEntity<TaskAcknowledgeResponse> acknowledgeTask(@PathVariable Long taskId) {
+        logger.info("Request made to POST /task-assignments/acknowledge/{}", taskId);
         return ResponseEntity.ok(taskAssignmentService.acknowledgeTask(taskId));
     }
 }

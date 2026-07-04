@@ -27,3 +27,9 @@ env:
 holidays:
   api:
     base-url: ${HOLIDAYS_API_ENDPOINT:https://holidays-api.home.anhoray.com}
+
+logging:
+  structured:
+    format:
+      console: logstash
+      file: logstash
