@@ -56,9 +56,4 @@ public class TaskAssignmentController {
     public ResponseEntity<TaskAcknowledgeResponse> acknowledgeTask(@PathVariable Long taskId) {
         return ResponseEntity.ok(taskAssignmentService.acknowledgeTask(taskId));
     }
-
-    @ExceptionHandler(TaskAssignmentNotFoundException.class)
-    public ResponseEntity<Void> handleNotFound() {
-        return ResponseEntity.notFound().build();
-    }
 }
