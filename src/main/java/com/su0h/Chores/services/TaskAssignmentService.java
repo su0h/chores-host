@@ -157,9 +157,9 @@ public class TaskAssignmentService {
         if (taskAssignment.getStatus() != TaskAssignment.Status.DONE) {
             taskAssignment.setStatus(TaskAssignment.Status.DONE);
             taskAssignmentRepository.save(taskAssignment);
-            this.logger.info("Task {} acknowledged as done", taskId);
+            this.logger.info("Task #{} [{}] assigned to {} acknowledged as done", taskId, taskAssignment.getTask().getName(), taskAssignment.getPerson().getName());
         } else {
-            this.logger.info("Task {} was already marked done", taskId);
+            this.logger.info("Task #{} [{}] assigned to {} was already marked done", taskId, taskAssignment.getTask().getName(), taskAssignment.getPerson().getName());
         }
 
         return new TaskAcknowledgeResponse(
