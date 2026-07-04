@@ -20,6 +20,15 @@ public class TaskAssignment {
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
+
+    public enum Status {
+        PENDING,
+        DONE
+    }
+
     protected TaskAssignment() { }
 
     public TaskAssignment(Person person, Task task) {
@@ -29,6 +38,8 @@ public class TaskAssignment {
 
         this.task = task;
         this.task.setTaskAssignment(this);
+
+        this.status = Status.PENDING;
     }
 
     @Override
@@ -61,5 +72,13 @@ public class TaskAssignment {
 
     public void setTask(Task task) {
         this.task = task;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

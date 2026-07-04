@@ -26,4 +26,4 @@ env:
 
 holidays:
   api:
-    base-url: ${HOLIDAYS_API_ENDPOINT:"https://holidays-api.home.anhoray.com"}
+    base-url: ${HOLIDAYS_API_ENDPOINT:https://holidays-api.home.anhoray.com}

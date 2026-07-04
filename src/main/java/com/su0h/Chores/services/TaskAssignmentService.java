@@ -1,11 +1,9 @@
 package com.su0h.Chores.services;
 
-import com.su0h.Chores.entities.Metadata;
-import com.su0h.Chores.entities.Task;
-import com.su0h.Chores.entities.TaskAssignment;
-import com.su0h.Chores.entities.TaskAssignmentResponse;
+import com.su0h.Chores.entities.*;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,19 +25,16 @@ public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
-    private final DateService dateService;
     private final Logger logger = LoggerFactory.getLogger(TaskAssignmentService.class);
 
     public TaskAssignmentService(
             TaskAssignmentRepository taskAssignmentRepository,
             MetadataRepository metadataRepository,
-            MetadataService metadataService,
-            DateService dateService
+            MetadataService metadataService
     ) {
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.metadataRepository = metadataRepository;
         this.metadataService = metadataService;
-        this.dateService = dateService;
     }
 
     public TaskAssignmentResponse fetchAllTaskAssignments() {
@@ -55,31 +50,27 @@ public class TaskAssignmentService {
     // https://stackoverflow.com/questions/60662943/spring-scheduled-cron-job-running-too-many-times
 //    @Scheduled(cron = "0 0 0 * * *") // Runs every 12:00 AM
     @Scheduled(cron = "${env.cron.first-rotation}")
-    private void performDailyScheduledShifting() {
+    void performDailyScheduledShifting() {
         this.logger.info("12:00 AM scheduled shifting triggered");
         this.shiftTaskAssignments();
     }
 
 //    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
     @Scheduled(cron = "${env.cron.second-rotation}")
-    private void performDoubleTaskScheduledShifting() {
+    void performSecondScheduledShifting() {
         this.logger.info("5:00 PM scheduled shifting triggered");
-        // Run only if today is a double task day (i.e., holiday, weekend)
-        if (dateService.isDoubleTaskDay(LocalDate.now())) {
-            this.logger.info("Performing 5:00 PM shifting");
+        if (taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)) {
+            this.logger.info("Performing 5:00 PM shifting — afternoon activity detected");
             this.shiftTaskAssignments();
         } else {
-            this.logger.info("Task assignments not shifted (today is not a double task day)");
+            this.logger.info("Task assignments not shifted (no afternoon activity)");
         }
     }
 
+    @Transactional
     public TaskAssignmentResponse shiftTaskAssignments() {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-
-        // Empty table of task assignments
-        // Note: ensure that cascade is not set to ALL
-        taskAssignmentRepository.deleteAll();
 
         // Retrieve tasks stored in task assignments
         ArrayList<Task> tasks = new ArrayList<>();
@@ -93,6 +84,7 @@ public class TaskAssignmentService {
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
             taskAssignments.get(i).setTask(tasks.get(i));
+            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
         }
 
         // Update Last Modified date
@@ -110,13 +102,10 @@ public class TaskAssignmentService {
     }
 
     // TODO: Try to merge with shiftTaskAssignments() (code duplication)
+    @Transactional
     public TaskAssignmentResponse basicUnshiftTaskAssignments() {
         // Save all task assignments
         List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-
-        // Empty table of task assignments
-        // Note: ensure that cascade is not set to ALL
-        taskAssignmentRepository.deleteAll();
 
         // Retrieve tasks stored in task assignments
         ArrayList<Task> tasks = new ArrayList<>();
@@ -130,6 +119,7 @@ public class TaskAssignmentService {
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
             taskAssignments.get(i).setTask(tasks.get(i));
+            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
         }
 
         // Update Last Modified date
@@ -144,6 +134,39 @@ public class TaskAssignmentService {
         return new TaskAssignmentResponse(
                 metadataService.getLastModifiedDate(),
                 this.fetchSimplifiedTaskAssignments()
+        );
+    }
+
+    public TaskAcknowledgeResponse getAcknowledgeInfo(Long taskId) {
+        TaskAssignment taskAssignment = taskAssignmentRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new TaskAssignmentNotFoundException(taskId));
+
+        return new TaskAcknowledgeResponse(
+                taskAssignment.getTask().getId(),
+                taskAssignment.getTask().getName(),
+                taskAssignment.getPerson().getName(),
+                taskAssignment.getStatus()
+        );
+    }
+
+    @Transactional
+    public TaskAcknowledgeResponse acknowledgeTask(Long taskId) {
+        TaskAssignment taskAssignment = taskAssignmentRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new TaskAssignmentNotFoundException(taskId));
+
+        if (taskAssignment.getStatus() != TaskAssignment.Status.DONE) {
+            taskAssignment.setStatus(TaskAssignment.Status.DONE);
+            taskAssignmentRepository.save(taskAssignment);
+            this.logger.info("Task {} acknowledged as done", taskId);
+        } else {
+            this.logger.info("Task {} was already marked done", taskId);
+        }
+
+        return new TaskAcknowledgeResponse(
+                taskAssignment.getTask().getId(),
+                taskAssignment.getTask().getName(),
+                taskAssignment.getPerson().getName(),
+                taskAssignment.getStatus()
         );
     }
 // Note: Condition checking temporarily removed; an honesty system is temporarily in place
@@ -230,7 +253,8 @@ public class TaskAssignmentService {
         taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(
                 new TaskAssignmentResponse.SimplifiedTaskAssignment(
                         taskAssignment.getPerson().getName(),
-                        taskAssignment.getTask().getName()
+                        taskAssignment.getTask().getName(),
+                        taskAssignment.getStatus()
                 )
         ));
 

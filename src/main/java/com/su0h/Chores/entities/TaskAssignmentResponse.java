@@ -15,10 +15,12 @@ public class TaskAssignmentResponse {
     public static class SimplifiedTaskAssignment {
         private String personName;
         private String taskName;
+        private TaskAssignment.Status status;
 
-        public SimplifiedTaskAssignment(String personName, String taskName) {
+        public SimplifiedTaskAssignment(String personName, String taskName, TaskAssignment.Status status) {
             this.personName = personName;
             this.taskName =  taskName;
+            this.status = status;
         }
 
         public String getPersonName() {
@@ -35,6 +37,14 @@ public class TaskAssignmentResponse {
 
         public void setTaskName(String taskName) {
             this.taskName = taskName;
+        }
+
+        public TaskAssignment.Status getStatus() {
+            return status;
+        }
+
+        public void setStatus(TaskAssignment.Status status) {
+            this.status = status;
         }
     }
 
