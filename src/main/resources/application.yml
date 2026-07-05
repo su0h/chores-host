@@ -22,7 +22,6 @@ env:
   cron:
     first-rotation: ${CRON_FIRST:0 0 0 * * *}
     second-rotation: ${CRON_SECOND:0 0 17 * * *}
-  shift-right: ${SHIFT_RIGHT:true}
 
 holidays:
   api:
