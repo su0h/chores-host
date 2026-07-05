@@ -41,8 +41,7 @@ public class TaskAssignmentController {
 
     @PostMapping("/task-assignments/shift")
     public ResponseEntity<TaskAssignmentResponse> shiftTaskAssignments() {
-        logger.warn("Request made to /task-assignments/shift");
-//        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        logger.info("Request made to /task-assignments/shift");
         return ResponseEntity.ok(taskAssignmentService.shiftTaskAssignments());
     }
 

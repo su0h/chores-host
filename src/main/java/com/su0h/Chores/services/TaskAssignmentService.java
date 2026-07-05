@@ -6,7 +6,6 @@ import com.su0h.Chores.repositories.TaskAssignmentRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,9 +18,6 @@ import java.util.List;
 @Service
 @EnableScheduling
 public class TaskAssignmentService {
-    @Value("${env.shift-right}")
-    private boolean shiftRight;
-
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
@@ -79,7 +75,7 @@ public class TaskAssignmentService {
         }
 
         // Shift list of tasks
-        this.shiftTasks(tasks, 1, !this.shiftRight);
+        this.shiftTasks(tasks, 1, true);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
@@ -114,7 +110,7 @@ public class TaskAssignmentService {
         }
 
         // Unshift list of tasks
-        this.shiftTasks(tasks, 1, this.shiftRight);
+        this.shiftTasks(tasks, 1, false);
 
         // Update task assignments
         for (int i = 0; i < taskAssignments.size(); i++) {
