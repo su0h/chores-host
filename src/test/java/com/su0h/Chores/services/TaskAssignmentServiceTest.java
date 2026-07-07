@@ -80,10 +80,10 @@ public class TaskAssignmentServiceTest {
 
         List<TaskAssignmentResponse.SimplifiedTaskAssignment> result = response.getTaskAssignments();
 
-        // Shift left by 1: [A, B, C] -> [C, A, B]
-        assertEquals("Task C", result.get(0).getTaskName());
-        assertEquals("Task A", result.get(1).getTaskName());
-        assertEquals("Task B", result.get(2).getTaskName());
+        // Shift left by 1: [A, B, C] -> [B, C, A]
+        assertEquals("Task B", result.get(0).getTaskName());
+        assertEquals("Task C", result.get(1).getTaskName());
+        assertEquals("Task A", result.get(2).getTaskName());
 
         for (TaskAssignment ta : assignments) {
             assertEquals(TaskAssignment.Status.PENDING, ta.getStatus());
@@ -108,10 +108,10 @@ public class TaskAssignmentServiceTest {
 
         List<TaskAssignmentResponse.SimplifiedTaskAssignment> result = response.getTaskAssignments();
 
-        // Unshift right by 1: [A, B, C] -> [B, C, A]
-        assertEquals("Task B", result.get(0).getTaskName());
-        assertEquals("Task C", result.get(1).getTaskName());
-        assertEquals("Task A", result.get(2).getTaskName());
+        // Unshift right by 1: [A, B, C] -> [C, A, B]
+        assertEquals("Task C", result.get(0).getTaskName());
+        assertEquals("Task A", result.get(1).getTaskName());
+        assertEquals("Task B", result.get(2).getTaskName());
 
         for (TaskAssignment ta : assignments) {
             assertEquals(TaskAssignment.Status.PENDING, ta.getStatus());

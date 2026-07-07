@@ -32,3 +32,6 @@ logging:
     format:
       console: logstash
       file: logstash
+    json:
+      add:
+        app-version: "@project.version@"
