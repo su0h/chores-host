@@ -48,7 +48,7 @@ public class TaskAssignmentService {
     @Scheduled(cron = "${env.cron.first-rotation}")
     void performDailyScheduledShifting() {
         this.logger.info("12:00 AM scheduled shifting triggered");
-        this.shiftTaskAssignments();
+        this.basicUnshiftTaskAssignments();
     }
 
 //    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
@@ -57,7 +57,7 @@ public class TaskAssignmentService {
         this.logger.info("5:00 PM scheduled shifting triggered");
         if (taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)) {
             this.logger.info("Performing 5:00 PM shifting — afternoon activity detected");
-            this.shiftTaskAssignments();
+            this.basicUnshiftTaskAssignments();
         } else {
             this.logger.info("Task assignments not shifted (no afternoon activity)");
         }
