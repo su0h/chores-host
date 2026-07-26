@@ -3,6 +3,7 @@ package com.su0h.Chores.services;
 import com.su0h.Chores.entities.*;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import com.su0h.Chores.repositories.TaskRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,16 +20,19 @@ import java.util.List;
 @EnableScheduling
 public class TaskAssignmentService {
     private final TaskAssignmentRepository taskAssignmentRepository;
+    private final TaskRepository taskRepository;
     private final MetadataRepository metadataRepository;
     private final MetadataService metadataService;
     private final Logger logger = LoggerFactory.getLogger(TaskAssignmentService.class);
 
     public TaskAssignmentService(
             TaskAssignmentRepository taskAssignmentRepository,
+            TaskRepository taskRepository,
             MetadataRepository metadataRepository,
             MetadataService metadataService
     ) {
         this.taskAssignmentRepository = taskAssignmentRepository;
+        this.taskRepository = taskRepository;
         this.metadataRepository = metadataRepository;
         this.metadataService = metadataService;
     }
@@ -48,7 +52,7 @@ public class TaskAssignmentService {
     @Scheduled(cron = "${env.cron.first-rotation}")
     void performDailyScheduledShifting() {
         this.logger.info("12:00 AM scheduled shifting triggered");
-        this.basicUnshiftTaskAssignments();
+        this.shiftTaskAssignments(true);
     }
 
 //    @Scheduled(cron = "0 0 17 * * *") // Runs every 5:00 PM
@@ -57,75 +61,36 @@ public class TaskAssignmentService {
         this.logger.info("5:00 PM scheduled shifting triggered");
         if (taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)) {
             this.logger.info("Performing 5:00 PM shifting — afternoon activity detected");
-            this.basicUnshiftTaskAssignments();
+            this.shiftTaskAssignments(true);
         } else {
             this.logger.info("Task assignments not shifted (no afternoon activity)");
         }
     }
 
     @Transactional
-    public TaskAssignmentResponse shiftTaskAssignments() {
-        // Save all task assignments
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+    public TaskAssignmentResponse shiftTaskAssignments(boolean shiftForward) {
+        List<Task> tasks = taskRepository.findAllByOrderBySequenceAsc();
+        int cycleSize = tasks.size();
 
-        // Retrieve tasks stored in task assignments
-        ArrayList<Task> tasks = new ArrayList<>();
-        for (TaskAssignment taskAssignment : taskAssignments) {
-            tasks.add(taskAssignment.getTask());
-        }
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAllByOrderByPersonIdAsc();
 
-        // Shift list of tasks
-        this.shiftTasks(tasks, 1, false);
-
-        // Update task assignments
-        for (int i = 0; i < taskAssignments.size(); i++) {
-            taskAssignments.get(i).setTask(tasks.get(i));
-            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
+        for (TaskAssignment ta : taskAssignments) {
+            int currentIndex = ta.getTask().getSequence();
+            int nextIndex = Math.floorMod(currentIndex + (shiftForward ? 1 : -1), cycleSize);
+            ta.setTask(tasks.get(nextIndex));
+            ta.setStatus(TaskAssignment.Status.PENDING);
         }
 
         // Update Last Modified date
         metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
+
+        if (!shiftForward)
+            metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
 
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
 
         this.logger.info("Task assignments shifted successfully");
-
-        return new TaskAssignmentResponse(
-                metadataService.getLastModifiedDate(),
-                this.fetchSimplifiedTaskAssignments()
-        );
-    }
-
-    // TODO: Try to merge with shiftTaskAssignments() (code duplication)
-    @Transactional
-    public TaskAssignmentResponse basicUnshiftTaskAssignments() {
-        // Save all task assignments
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
-
-        // Retrieve tasks stored in task assignments
-        ArrayList<Task> tasks = new ArrayList<>();
-        for (TaskAssignment taskAssignment : taskAssignments) {
-            tasks.add(taskAssignment.getTask());
-        }
-
-        // Unshift list of tasks
-        this.shiftTasks(tasks, 1, true);
-
-        // Update task assignments
-        for (int i = 0; i < taskAssignments.size(); i++) {
-            taskAssignments.get(i).setTask(tasks.get(i));
-            taskAssignments.get(i).setStatus(TaskAssignment.Status.PENDING);
-        }
-
-        // Update Last Modified date
-        metadataRepository.save(new Metadata(Metadata.Key.LAST_MODIFIED, LocalDateTime.now().toString()));
-        metadataRepository.save(new Metadata(Metadata.Key.LAST_UNSHIFTED, LocalDate.now().toString()));
-
-        // Save updated task assignments
-        taskAssignmentRepository.saveAll(taskAssignments);
-
-        this.logger.info("Task assignments unshifted successfully");
 
         return new TaskAssignmentResponse(
                 metadataService.getLastModifiedDate(),
@@ -233,17 +198,8 @@ public class TaskAssignmentService {
 //        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
 //    }
 
-    private void shiftTasks(ArrayList<Task> tasks, int shiftAmount, boolean shiftRight) {
-        for (int i = 0; i < shiftAmount; i++)
-            if (shiftRight) {
-                tasks.add(0, tasks.remove(tasks.size() - 1));
-            } else {
-                tasks.add(tasks.size() - 1, tasks.remove(0));
-            }
-    }
-
     private List<TaskAssignmentResponse.SimplifiedTaskAssignment> fetchSimplifiedTaskAssignments() {
-        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAll();
+        List<TaskAssignment> taskAssignments = taskAssignmentRepository.findAllByOrderByPersonIdAsc();
         List<TaskAssignmentResponse.SimplifiedTaskAssignment> simplifiedTaskAssignments = new ArrayList<>();
 
         taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(

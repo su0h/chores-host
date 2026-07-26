@@ -9,6 +9,7 @@ import com.su0h.Chores.entities.TaskAcknowledgeResponse;
 import com.su0h.Chores.entities.TaskAssignmentNotFoundException;
 import com.su0h.Chores.repositories.MetadataRepository;
 import com.su0h.Chores.repositories.TaskAssignmentRepository;
+import com.su0h.Chores.repositories.TaskRepository;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,9 @@ public class TaskAssignmentServiceTest {
     private TaskAssignmentRepository taskAssignmentRepository;
 
     @Mock
+    private TaskRepository taskRepository;
+
+    @Mock
     private MetadataRepository metadataRepository;
 
     @Mock
@@ -53,7 +57,7 @@ public class TaskAssignmentServiceTest {
         List<TaskAssignment> assignments = new ArrayList<>();
         assignments.add(ta1);
 
-        when(taskAssignmentRepository.findAll()).thenReturn(assignments);
+        when(taskAssignmentRepository.findAllByOrderByPersonIdAsc()).thenReturn(assignments);
 
         TaskAssignmentResponse response = taskAssignmentService.fetchAllTaskAssignments();
 
@@ -64,15 +68,17 @@ public class TaskAssignmentServiceTest {
     }
 
     @Test
-    void testShiftTaskAssignments_Success() {
+    void testShiftTaskAssignmentsForward_Success() {
         LocalDateTime lastModified = LocalDateTime.now();
         when(metadataService.getLastModifiedDate()).thenReturn(lastModified);
 
         List<TaskAssignment> assignments = getTaskAssignments();
+        List<Task> tasks = getTasks();
 
-        when(taskAssignmentRepository.findAll()).thenReturn(assignments);
+        when(taskAssignmentRepository.findAllByOrderByPersonIdAsc()).thenReturn(assignments);
+        when(taskRepository.findAllByOrderBySequenceAsc()).thenReturn(tasks);
 
-        TaskAssignmentResponse response = taskAssignmentService.shiftTaskAssignments();
+        TaskAssignmentResponse response = taskAssignmentService.shiftTaskAssignments(true);
 
         verify(taskAssignmentRepository, never()).deleteAll();
         verify(metadataRepository, times(1)).save(argThat(m -> m.getKey().equals(Metadata.Key.LAST_MODIFIED.name())));
@@ -80,7 +86,7 @@ public class TaskAssignmentServiceTest {
 
         List<TaskAssignmentResponse.SimplifiedTaskAssignment> result = response.getTaskAssignments();
 
-        // Shift left by 1: [A, B, C] -> [B, C, A]
+        // Shift right by 1: [A, B, C] -> [B, C, A]
         assertEquals("Task B", result.get(0).getTaskName());
         assertEquals("Task C", result.get(1).getTaskName());
         assertEquals("Task A", result.get(2).getTaskName());
@@ -91,15 +97,17 @@ public class TaskAssignmentServiceTest {
     }
 
     @Test
-    void testBasicUnshiftTaskAssignments_Success() {
+    void testShiftTaskAssignmentsReverse_Success() {
         LocalDateTime lastModified = LocalDateTime.now();
         when(metadataService.getLastModifiedDate()).thenReturn(lastModified);
 
         List<TaskAssignment> assignments = getTaskAssignments();
+        List<Task> tasks = getTasks();
 
-        when(taskAssignmentRepository.findAll()).thenReturn(assignments);
+        when(taskAssignmentRepository.findAllByOrderByPersonIdAsc()).thenReturn(assignments);
+        when(taskRepository.findAllByOrderBySequenceAsc()).thenReturn(tasks);
 
-        TaskAssignmentResponse response = taskAssignmentService.basicUnshiftTaskAssignments();
+        TaskAssignmentResponse response = taskAssignmentService.shiftTaskAssignments(false);
 
         verify(taskAssignmentRepository, never()).deleteAll();
         verify(metadataRepository).save(argThat(m -> m.getKey().equals(Metadata.Key.LAST_MODIFIED.name())));
@@ -118,18 +126,30 @@ public class TaskAssignmentServiceTest {
         }
     }
 
+    private static @NonNull List<Task> getTasks() {
+        Task t1 = new Task("Task A", 0);
+        Task t2 = new Task("Task B", 1);
+        Task t3 = new Task("Task C", 2);
+
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(t1);
+        tasks.add(t2);
+        tasks.add(t3);
+
+        return tasks;
+    }
+
     private static @NonNull List<TaskAssignment> getTaskAssignments() {
+        List<Task> tasks = getTasks();
+
         Person p1 = new Person("Alice");
-        Task t1 = new Task("Task A");
-        TaskAssignment ta1 = new TaskAssignment(p1, t1);
+        TaskAssignment ta1 = new TaskAssignment(p1, tasks.get(0));
 
         Person p2 = new Person("Bob");
-        Task t2 = new Task("Task B");
-        TaskAssignment ta2 = new TaskAssignment(p2, t2);
+        TaskAssignment ta2 = new TaskAssignment(p2, tasks.get(1));
 
         Person p3 = new Person("Charlie");
-        Task t3 = new Task("Task C");
-        TaskAssignment ta3 = new TaskAssignment(p3, t3);
+        TaskAssignment ta3 = new TaskAssignment(p3, tasks.get(2));
 
         List<TaskAssignment> assignments = new ArrayList<>();
         assignments.add(ta1);
@@ -204,19 +224,22 @@ public class TaskAssignmentServiceTest {
     }
 
     @Test
-    void testShiftTaskAssignments_ResetsStatusToPending() {
+    void testShiftTaskAssignmentsForward_ResetsStatusToPending() {
         LocalDateTime lastModified = LocalDateTime.now();
         when(metadataService.getLastModifiedDate()).thenReturn(lastModified);
 
         List<TaskAssignment> assignments = getTaskAssignments();
+        List<Task> tasks = getTasks();
+
         // Simulate assignments that were marked DONE before this rotation
         for (TaskAssignment ta : assignments) {
             ta.setStatus(TaskAssignment.Status.DONE);
         }
 
-        when(taskAssignmentRepository.findAll()).thenReturn(assignments);
+        when(taskAssignmentRepository.findAllByOrderByPersonIdAsc()).thenReturn(assignments);
+        when(taskRepository.findAllByOrderBySequenceAsc()).thenReturn(tasks);
 
-        taskAssignmentService.shiftTaskAssignments();
+        taskAssignmentService.shiftTaskAssignments(true);
 
         for (TaskAssignment ta : assignments) {
             assertEquals(TaskAssignment.Status.PENDING, ta.getStatus());
@@ -224,48 +247,51 @@ public class TaskAssignmentServiceTest {
     }
 
     @Test
-    void testBasicUnshiftTaskAssignments_ResetsStatusToPending() {
+    void testShiftTaskAssignmentsReverse_ResetsStatusToPending() {
         LocalDateTime lastModified = LocalDateTime.now();
         when(metadataService.getLastModifiedDate()).thenReturn(lastModified);
 
         List<TaskAssignment> assignments = getTaskAssignments();
+        List<Task> tasks = getTasks();
+
         // Simulate assignments that were marked DONE before this rotation
         for (TaskAssignment ta : assignments) {
             ta.setStatus(TaskAssignment.Status.DONE);
         }
 
-        when(taskAssignmentRepository.findAll()).thenReturn(assignments);
+        when(taskAssignmentRepository.findAllByOrderByPersonIdAsc()).thenReturn(assignments);
+        when(taskRepository.findAllByOrderBySequenceAsc()).thenReturn(tasks);
 
-        taskAssignmentService.basicUnshiftTaskAssignments();
+        taskAssignmentService.shiftTaskAssignments(false);
 
         for (TaskAssignment ta : assignments) {
             assertEquals(TaskAssignment.Status.PENDING, ta.getStatus());
         }
     }
 
-//    @Test
-//    void testPerformDailyScheduledShifting_AlwaysShifts() {
-//        TaskAssignmentService spyService = spy(taskAssignmentService);
-//        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
-//                .when(spyService).shiftTaskAssignments();
-//
-//        spyService.performDailyScheduledShifting();
-//
-//        verify(spyService).basicUnshiftTaskAssignments();
-//    }
-//
-//    @Test
-//    void testPerformSecondScheduledShifting_ShiftsWhenActivityDetected() {
-//        when(taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)).thenReturn(true);
-//
-//        TaskAssignmentService spyService = spy(taskAssignmentService);
-//        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
-//                .when(spyService).shiftTaskAssignments();
-//
-//        spyService.performSecondScheduledShifting();
-//
-//        verify(spyService).basicUnshiftTaskAssignments();
-//    }
+    @Test
+    void testPerformDailyScheduledShifting_AlwaysShifts() {
+        TaskAssignmentService spyService = spy(taskAssignmentService);
+        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
+                .when(spyService).shiftTaskAssignments(true);
+
+        spyService.performDailyScheduledShifting();
+
+        verify(spyService).shiftTaskAssignments(true);
+    }
+
+    @Test
+    void testPerformSecondScheduledShifting_ShiftsWhenActivityDetected() {
+        when(taskAssignmentRepository.existsByStatus(TaskAssignment.Status.DONE)).thenReturn(true);
+
+        TaskAssignmentService spyService = spy(taskAssignmentService);
+        doReturn(new TaskAssignmentResponse(LocalDateTime.now(), new ArrayList<>()))
+                .when(spyService).shiftTaskAssignments(true);
+
+        spyService.performSecondScheduledShifting();
+
+        verify(spyService).shiftTaskAssignments(true);
+    }
 
     @Test
     void testPerformSecondScheduledShifting_SkipsWhenNoActivity() {
@@ -275,6 +301,6 @@ public class TaskAssignmentServiceTest {
 
         spyService.performSecondScheduledShifting();
 
-        verify(spyService, never()).shiftTaskAssignments();
+        verify(spyService, never()).shiftTaskAssignments(true);
     }
 }

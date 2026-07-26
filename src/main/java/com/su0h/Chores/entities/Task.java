@@ -13,6 +13,9 @@ public class Task {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private int sequence;
+
     @OneToOne(mappedBy = "task")
     // https://stackoverflow.com/questions/75757132/failure-while-trying-to-resolve-exception-org-springframework-http-converter-ht
     @JsonIgnore
@@ -22,6 +25,11 @@ public class Task {
 
     public Task(String name) {
         this.name = name;
+    }
+
+    public Task(String name, int sequence) {
+        this.name = name;
+        this.sequence = sequence;
     }
 
     public String toString() {
@@ -45,6 +53,14 @@ public class Task {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
     }
 
     public TaskAssignment getTaskAssignment() {

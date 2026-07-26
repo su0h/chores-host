@@ -10,4 +10,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Person> findByName(String name);
 
     Task findById(long id);
+
+    List<Task> findAllByOrderBySequenceAsc();
 }
