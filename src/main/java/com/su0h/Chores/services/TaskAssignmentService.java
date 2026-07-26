@@ -90,7 +90,10 @@ public class TaskAssignmentService {
         // Save updated task assignments
         taskAssignmentRepository.saveAll(taskAssignments);
 
-        this.logger.info("Task assignments shifted successfully");
+        if (shiftForward)
+            this.logger.info("Task assignments shifted successfully");
+        else
+            this.logger.info("Task assignments unshifted successfully");
 
         return new TaskAssignmentResponse(
                 metadataService.getLastModifiedDate(),
