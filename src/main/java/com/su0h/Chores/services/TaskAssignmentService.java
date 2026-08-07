@@ -207,6 +207,7 @@ public class TaskAssignmentService {
 
         taskAssignments.forEach(taskAssignment -> simplifiedTaskAssignments.add(
                 new TaskAssignmentResponse.SimplifiedTaskAssignment(
+                        taskAssignment.getTask().getId(),
                         taskAssignment.getPerson().getName(),
                         taskAssignment.getTask().getName(),
                         taskAssignment.getStatus()

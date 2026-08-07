@@ -13,15 +13,21 @@ public class TaskAssignmentResponse {
     }
 
     public static class SimplifiedTaskAssignment {
+        private Long taskId;
         private String personName;
         private String taskName;
         private TaskAssignment.Status status;
 
-        public SimplifiedTaskAssignment(String personName, String taskName, TaskAssignment.Status status) {
+        public SimplifiedTaskAssignment(Long taskId, String personName, String taskName, TaskAssignment.Status status) {
+            this.taskId = taskId;
             this.personName = personName;
             this.taskName =  taskName;
             this.status = status;
         }
+
+        public Long getTaskId() { return taskId; }
+
+        public void setTaskId(Long taskId) { this.taskId = taskId; }
 
         public String getPersonName() {
             return personName;
